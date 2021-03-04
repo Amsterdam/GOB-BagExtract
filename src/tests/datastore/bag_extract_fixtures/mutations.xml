@@ -1,0 +1,470 @@
+<?xml version="1.0" encoding="utf-8"?>
+<mlm:bagMutaties xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xmlns:ml="http://www.kadaster.nl/schemas/mutatielevering-generiek/1.0"
+                 xmlns:gml="http://www.opengis.net/gml/3.2"
+                 xmlns:selecties-extract="http://www.kadaster.nl/schemas/lvbag/extract-selecties/v20200601"
+                 xmlns:mlm="http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-mutaties-lvc/v20200601"
+                 xmlns:Historie="www.kadaster.nl/schemas/lvbag/imbag/historie/v20200601"
+                 xmlns:Objecten="www.kadaster.nl/schemas/lvbag/imbag/objecten/v20200601"
+                 xmlns:Objecten-ref="www.kadaster.nl/schemas/lvbag/imbag/objecten-ref/v20200601"
+                 xsi:schemaLocation="http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-mutaties-lvc/v20200601 http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-mutaties-lvc/v20200601/BagvsExtractDeelbestandMutatieLvc-2.1.0.xsd">
+
+    <mlm:bagInfo>
+        <selecties-extract:Gebied-Registratief>
+            <selecties-extract:Gebied-NLD/>
+        </selecties-extract:Gebied-Registratief>
+        <selecties-extract:MUT-Extract>
+            <selecties-extract:StandTechnischeDatum>2021-01-14</selecties-extract:StandTechnischeDatum>
+            <selecties-extract:Mutatieperiode>
+                <selecties-extract:MutatiedatumVanaf>2021-01-13</selecties-extract:MutatiedatumVanaf>
+                <selecties-extract:MutatiedatumTot>2021-01-14</selecties-extract:MutatiedatumTot>
+            </selecties-extract:Mutatieperiode>
+        </selecties-extract:MUT-Extract>
+    </mlm:bagInfo>
+    <ml:dataset>LVBAG</ml:dataset>
+    <ml:inhoud>
+        <ml:gebied>NEDERLAND</ml:gebied>
+        <ml:leveringsId>0000000001</ml:leveringsId>
+        <ml:objectTypen/>
+    </ml:inhoud>
+    <ml:mutatieBericht>
+        <ml:mutatieGroep>
+            <ml:toevoeging>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0458200000199376
+                                    This object should be ignored, because there's a newer modification for this same
+                                    object.
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2010-09-28</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2010-11-26T08:49:50.000
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2010-11-26T09:01:30.485
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                0458010000059153123123123
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129955.346 481542.434 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>45</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056661</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:toevoeging>
+        </ml:mutatieGroep>
+        <ml:mutatieGroep>
+            <ml:wijziging>
+                <ml:was>Left out on purpose, not important</ml:was>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0458200000199376
+                                    This object should be ignored, because there's a newer modification for this same
+                                    object.
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2010-09-28</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2010-11-26T08:49:50.000
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2010-11-26T09:01:30.485
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                0458010000059153123123123
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129955.346 481542.434 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>45</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056661</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:wijziging>
+        </ml:mutatieGroep>
+        <ml:mutatieGroep>
+            <ml:wijziging>
+                <ml:was>Left out on purpose, not important</ml:was>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0458200000199376
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2010-09-28</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2010-11-26T08:49:50.000
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2010-11-26T09:01:30.485
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                0458010000059153123123123
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129955.346 481542.434 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>45</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056661</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:wijziging>
+        </ml:mutatieGroep>
+        <ml:mutatieGroep>
+            <ml:toevoeging>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0458200000199376
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2010-09-28</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2010-11-26T08:49:50.000
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2010-11-26T09:01:30.485
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                047010000059153123123123
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129955.346 481542.434 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>45</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056661</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:toevoeging>
+        </ml:mutatieGroep>
+        <ml:mutatieGroep>
+            <ml:wijziging>
+                <ml:was>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0457200000199395
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2010-09-28</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2010-11-26T08:49:52.000
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2010-11-26T09:01:30.671
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                0457010000059164
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129990.358 481557.42 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>51</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056651</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:was>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0457200000199395
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2010-09-28</Historie:beginGeldigheid>
+                                    <Historie:eindGeldigheid>2020-11-14</Historie:eindGeldigheid>
+                                    <Historie:tijdstipRegistratie>2010-11-26T08:49:52.000
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:eindRegistratie>2020-11-14T21:56:54.615</Historie:eindRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2010-11-26T09:01:30.671
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                0457010000059164
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129990.358 481557.42 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctiemutatie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>53</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik mutatie</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056651</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:wijziging>
+            <ml:toevoeging>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:Verblijfsobject>
+                            <Objecten:heeftAlsHoofdadres>
+                                <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                                    0457200000199395
+                                </Objecten-ref:NummeraanduidingRef>
+                            </Objecten:heeftAlsHoofdadres>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>2</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2020-11-14</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2020-11-14T21:56:54.615
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2020-11-15T07:42:59.308
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                            <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">
+                                0457010000059164
+                            </Objecten:identificatie>
+                            <Objecten:geometrie>
+                                <Objecten:punt>
+                                    <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                        <gml:pos>129990.358 481557.42 0.0</gml:pos>
+                                    </gml:Point>
+                                </Objecten:punt>
+                            </Objecten:geometrie>
+                            <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                            <Objecten:oppervlakte>51</Objecten:oppervlakte>
+                            <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2010-09-28</Objecten:documentdatum>
+                            <Objecten:documentnummer>Z.9704/D.6419</Objecten:documentnummer>
+                            <Objecten:maaktDeelUitVan>
+                                <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0457100000056651</Objecten-ref:PandRef>
+                            </Objecten:maaktDeelUitVan>
+                        </Objecten:Verblijfsobject>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:toevoeging>
+        </ml:mutatieGroep>
+        <ml:mutatieGroep>
+            <ml:wijziging>
+                <ml:was>
+                    <mlm:bagObject>
+                        <Objecten:OpenbareRuimte>
+                            <Objecten:identificatie domein="NL.IMBAG.Openbareruimte">
+                                1948300000023555
+                            </Objecten:identificatie>
+                            <Objecten:naam>Hoge Bolst</Objecten:naam>
+                            <Objecten:type>Weg</Objecten:type>
+                            <Objecten:status>Naamgeving uitgegeven</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2020-10-29</Objecten:documentdatum>
+                            <Objecten:documentnummer>1948350981</Objecten:documentnummer>
+                            <Objecten:ligtIn>
+                                <Objecten-ref:WoonplaatsRef domein="NL.IMBAG.Woonplaats">2826
+                                </Objecten-ref:WoonplaatsRef>
+                            </Objecten:ligtIn>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2020-10-29</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2020-11-03T09:42:48.995
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2020-11-03T09:43:00.899
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                        </Objecten:OpenbareRuimte>
+                    </mlm:bagObject>
+                </ml:was>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:OpenbareRuimte>
+                            <Objecten:identificatie domein="NL.IMBAG.Openbareruimte">
+                                1948300000023555
+                            </Objecten:identificatie>
+                            <Objecten:naam>Hoge Bolst</Objecten:naam>
+                            <Objecten:type>Weg</Objecten:type>
+                            <Objecten:status>Naamgeving uitgegeven</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2020-10-29</Objecten:documentdatum>
+                            <Objecten:documentnummer>1948350981</Objecten:documentnummer>
+                            <Objecten:ligtIn>
+                                <Objecten-ref:WoonplaatsRef domein="NL.IMBAG.Woonplaats">2826
+                                </Objecten-ref:WoonplaatsRef>
+                            </Objecten:ligtIn>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2020-10-29</Historie:beginGeldigheid>
+                                    <Historie:eindGeldigheid>2021-01-12</Historie:eindGeldigheid>
+                                    <Historie:tijdstipRegistratie>2020-11-03T09:42:48.995
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:eindRegistratie>2021-01-13T10:43:52.313</Historie:eindRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2020-11-03T09:43:00.899
+                                        </Historie:tijdstipRegistratieLV>
+                                        <Historie:tijdstipEindRegistratieLV>
+                                            2021-01-13T10:44:00.721
+                                        </Historie:tijdstipEindRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                        </Objecten:OpenbareRuimte>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:wijziging>
+            <ml:toevoeging>
+                <ml:wordt>
+                    <mlm:bagObject>
+                        <Objecten:OpenbareRuimte>
+                            <Objecten:identificatie domein="NL.IMBAG.Openbareruimte">
+                                1948300000023555
+                            </Objecten:identificatie>
+                            <Objecten:naam>Hoge Bolst</Objecten:naam>
+                            <Objecten:type>Weg</Objecten:type>
+                            <Objecten:status>Naamgeving ingetrokken</Objecten:status>
+                            <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                            <Objecten:documentdatum>2021-01-12</Objecten:documentdatum>
+                            <Objecten:documentnummer>19481237546</Objecten:documentnummer>
+                            <Objecten:ligtIn>
+                                <Objecten-ref:WoonplaatsRef domein="NL.IMBAG.Woonplaats">2826
+                                </Objecten-ref:WoonplaatsRef>
+                            </Objecten:ligtIn>
+                            <Objecten:voorkomen>
+                                <Historie:Voorkomen>
+                                    <Historie:voorkomenidentificatie>2</Historie:voorkomenidentificatie>
+                                    <Historie:beginGeldigheid>2021-01-12</Historie:beginGeldigheid>
+                                    <Historie:tijdstipRegistratie>2021-01-13T10:43:52.313
+                                    </Historie:tijdstipRegistratie>
+                                    <Historie:BeschikbaarLV>
+                                        <Historie:tijdstipRegistratieLV>
+                                            2021-01-13T10:44:00.721
+                                        </Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLV>
+                                </Historie:Voorkomen>
+                            </Objecten:voorkomen>
+                        </Objecten:OpenbareRuimte>
+                    </mlm:bagObject>
+                </ml:wordt>
+            </ml:toevoeging>
+        </ml:mutatieGroep>
+    </ml:mutatieBericht>
+</mlm:bagMutaties>
