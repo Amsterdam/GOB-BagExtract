@@ -1,0 +1,17 @@
+{
+  "version": "0.1",
+  "catalogue": "bag",
+  "entity": "openbareruimtes",
+  "source": {
+    "name": "Kadaster",
+    "application": "BAGExtract",
+    "entity_id": "identificatie",
+    "read_config": {
+      "object_type": "OPR",
+      "xml_object": "OpenbareRuimte",
+      "gemeentes": [
+        "0457"
+      ]
+    }
+  }
+}

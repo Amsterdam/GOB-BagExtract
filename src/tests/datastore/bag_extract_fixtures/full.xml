@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<sl-bag-extract:bagStand
+        xmlns:Objecten="www.kadaster.nl/schemas/lvbag/imbag/objecten/v20200601"
+        xmlns:gml="http://www.opengis.net/gml/3.2"
+        xmlns:Historie="www.kadaster.nl/schemas/lvbag/imbag/historie/v20200601"
+        xmlns:Objecten-ref="www.kadaster.nl/schemas/lvbag/imbag/objecten-ref/v20200601"
+        xmlns:selecties-extract="http://www.kadaster.nl/schemas/lvbag/extract-selecties/v20200601"
+        xmlns:sl-bag-extract="http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-lvc/v20200601"
+        xmlns:sl="http://www.kadaster.nl/schemas/standlevering-generiek/1.0"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-lvc/v20200601 http://www.kadaster.nl/schemas/bag-verstrekkingen/extract-deelbestand-lvc/v20200601/BagvsExtractDeelbestandExtractLvc-2.1.0.xsd">
+
+    <sl-bag-extract:bagInfo>
+        <selecties-extract:Gebied-Registratief>
+            <selecties-extract:Gebied-GEM>
+                <selecties-extract:GemeenteCollectie>
+                    <selecties-extract:Gemeente>
+                        <selecties-extract:GemeenteIdentificatie>0457</selecties-extract:GemeenteIdentificatie>
+                    </selecties-extract:Gemeente>
+                </selecties-extract:GemeenteCollectie>
+            </selecties-extract:Gebied-GEM>
+        </selecties-extract:Gebied-Registratief>
+        <selecties-extract:LVC-Extract>
+            <selecties-extract:StandTechnischeDatum>2020-11-15</selecties-extract:StandTechnischeDatum>
+        </selecties-extract:LVC-Extract>
+    </sl-bag-extract:bagInfo>
+    <sl:standBestand>
+        <sl:dataset>LVBAG</sl:dataset>
+        <sl:inhoud>
+            <sl:gebied>GEMEENTE</sl:gebied>
+            <sl:leveringsId>0000000001</sl:leveringsId>
+            <sl:objectTypen>
+                <sl:objectType>VBO</sl:objectType>
+            </sl:objectTypen>
+        </sl:inhoud>
+        <sl:stand>
+            <sl-bag-extract:bagObject>
+                <Objecten:Verblijfsobject>
+                    <Objecten:heeftAlsHoofdadres>
+                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">hoofdA
+                        </Objecten-ref:NummeraanduidingRef>
+                    </Objecten:heeftAlsHoofdadres>
+                    <Objecten:voorkomen>
+                        <Historie:Voorkomen>
+                            <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
+                            <Historie:beginGeldigheid>2010-08-31</Historie:beginGeldigheid>
+                            <Historie:tijdstipRegistratie>2010-11-15T13:22:03.000</Historie:tijdstipRegistratie>
+                            <Historie:BeschikbaarLV>
+                                <Historie:tijdstipRegistratieLV>
+                                    2010-11-15T13:31:10.557
+                                </Historie:tijdstipRegistratieLV>
+                            </Historie:BeschikbaarLV>
+                        </Historie:Voorkomen>
+                    </Objecten:voorkomen>
+                    <Objecten:heeftAlsNevenadres>
+                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                            nevenA
+                        </Objecten-ref:NummeraanduidingRef>
+                    </Objecten:heeftAlsNevenadres>
+                    <Objecten:heeftAlsNevenadres>
+                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
+                            nevenB
+                        </Objecten-ref:NummeraanduidingRef>
+                    </Objecten:heeftAlsNevenadres>
+                    <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">votA</Objecten:identificatie>
+                    <Objecten:geometrie>
+                        <Objecten:punt>
+                            <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
+                                <gml:pos>131419.0 482833.0 0.0</gml:pos>
+                            </gml:Point>
+                        </Objecten:punt>
+                    </Objecten:geometrie>
+                    <Objecten:gebruiksdoel>woonfunctie</Objecten:gebruiksdoel>
+                    <Objecten:gebruiksdoel>industriefunctie</Objecten:gebruiksdoel>
+                    <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
+                    <Objecten:oppervlakte>209494</Objecten:oppervlakte>
+                    <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
+                    <Objecten:geconstateerd>N</Objecten:geconstateerd>
+                    <Objecten:documentdatum>1900-01-01</Objecten:documentdatum>
+                    <Objecten:documentnummer>docnr</Objecten:documentnummer>
+                    <Objecten:maaktDeelUitVan>
+                        <Objecten-ref:PandRef domein="NL.IMBAG.Pand">pndA</Objecten-ref:PandRef>
+                    </Objecten:maaktDeelUitVan>
+                    <Objecten:maaktDeelUitVan>
+                        <Objecten-ref:PandRef domein="NL.IMBAG.Pand">pndB</Objecten-ref:PandRef>
+                    </Objecten:maaktDeelUitVan>
+                </Objecten:Verblijfsobject>
+            </sl-bag-extract:bagObject>
+        </sl:stand>
+    </sl:standBestand>
+</sl-bag-extract:bagStand>
