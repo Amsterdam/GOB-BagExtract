@@ -24,11 +24,6 @@ class MutationsHandler:
     def get_application(dataset: dict):
         return dataset.get('source', {}).get('application')
 
-    @classmethod
-    def is_mutations_import(cls, dataset: dict):
-        application = cls.get_application(dataset)
-        return application in cls.HANDLERS.keys()
-
     def get_next_import(self, last_import: MutationImport) -> Tuple[MutationImport, dict, datetime.date]:
         return self.handler.handle_import(last_import, self.dataset)
 

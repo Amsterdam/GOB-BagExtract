@@ -42,13 +42,18 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
 
         repo.save(mutation_import)
         logger.info(f"File to be imported is {mutation_import.filename}")
+
         dataset = updated_dataset
         mode = ImportMode(mutation_import.mode)
+
         prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
+
         prepare_client.import_dataset()
         mutation_import.ended_at = datetime.datetime.utcnow()
+
         repo.save(mutation_import)
         logger.info("Mutation import ended. Saving state in database")
+
         next_mutations = mutations_handler.have_next(mutation_import)
     return msg, next_mutations
 
@@ -63,9 +68,8 @@ def handle_bag_extract_message(msg):
         'entity': dataset['entity'],
     }
     logger.configure(msg, "BAG EXTRACT")
-    if MutationsHandler.is_mutations_import(dataset):
-        mutations_handler = MutationsHandler(dataset)
-        msg, next_mutations = _handle_mutation_import(msg, dataset, mutations_handler)
+    mutations_handler = MutationsHandler(dataset)
+    msg, next_mutations = _handle_mutation_import(msg, dataset, mutations_handler)
     if next_mutations:
         logger.info("Have pending next import. Triggering new import.")
         copy_header = [
@@ -79,7 +83,6 @@ def handle_bag_extract_message(msg):
         }, {k: msg['header'][k] for k in msg['header'].keys() if k in copy_header})
     else:
         logger.info("This was the last file to be exctracted for now.")
-    # Here we need to start the import task
     return msg
 
 
@@ -122,6 +125,21 @@ SERVICEDEFINITION = {
 
 
 # Create some optarg handling to run indepent from workflow message
+def main(collection: str):
+    msg = {
+        'header': {
+            'catalogue': 'bag',
+            'collection': collection,
+        }
+    }
+    logger.configure(msg, "BAG EXTRACT")
+    dataset = _extract_dataset_from_msg(msg)
+    mutation_handler = MutationsHandler(dataset)
+    next_mutation = True
+    while next_mutation:
+        _, next_mutation = _handle_mutation_import(msg, dataset, mutation_handler)
+        if next_mutation:
+            logger.info('Next mutaion is available, keep processing')
 
 
 def init():
@@ -130,20 +148,7 @@ def init():
         if len(sys.argv) == 1:
             messagedriven_service(SERVICEDEFINITION, "BagExtract")
         else:
-            msg = {
-                'header': {
-                    'catalogue': 'bag',
-                    'collection': sys.argv[1],
-                }
-            }
-            logger.configure(msg, "BAG EXTRACT")
-            dataset = _extract_dataset_from_msg(msg)
-            mutation_handler = MutationsHandler(dataset)
-            next_mutation = True
-            while next_mutation:
-                msg, next_mutation = _handle_mutation_import(msg, dataset, mutation_handler)
-                if next_mutation:
-                    logger.info('Next mutaion is available, keep processing')
+            main(sys.argv[1])
 
 
 init()

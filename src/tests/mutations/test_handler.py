@@ -24,17 +24,6 @@ class TestMutationsHandler(TestCase):
             dataset['source']['application'] = 'SomeOther'
             MutationsHandler(dataset)
 
-    def test_is_mutations_import(self):
-        dataset = {
-            'source': {
-                'application': 'BAGExtract'
-            }
-        }
-        self.assertTrue(MutationsHandler.is_mutations_import(dataset))
-
-        dataset['source']['application'] = 'SomeOtherApplication'
-        self.assertFalse(MutationsHandler.is_mutations_import(dataset))
-
     def test_get_next_import(self):
         dataset = {
             'source': {

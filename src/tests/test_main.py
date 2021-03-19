@@ -6,7 +6,7 @@ from gobcore.enum import ImportMode
 
 from gobbagextract.__main__ import \
     SERVICEDEFINITION, handle_bag_extract_message, NothingToDo, _handle_mutation_import, \
-    BAG_EXTRACT, _extract_dataset_from_msg, GOBException
+    BAG_EXTRACT, _extract_dataset_from_msg, GOBException, main
 
 from gobbagextract.database.model import MutationImport
 
@@ -24,39 +24,46 @@ class TestMain(TestCase):
     @patch("gobbagextract.__main__.sys")
     @patch("gobbagextract.__main__.connect")
     @patch("gobbagextract.__main__.messagedriven_service")
-    def test_main_entry(self, mock_messagedriven_service, mock_connect, mock_sys):
-        mock_sys.argv = ['one']
+    def test_init___main__(self, mock_messagedriven_service, mock_connect, mock_sys):
+        mock_sys.argv = ['arg0']
         from gobbagextract import __main__ as module
 
         with patch.object(module, "__name__", "__main__"):
             module.init()
-            mock_messagedriven_service.assert_called_with(SERVICEDEFINITION, "BagExtract")
-            mock_connect.assert_called_once()
+            mock_messagedriven_service.assert_called_once_with(SERVICEDEFINITION, "BagExtract")
+
+    @patch("gobbagextract.__main__.sys")
+    @patch("gobbagextract.__main__.main")
+    def test_init_wth_args(self, mock_main, mock_sys):
+        mock_sys.argv = ['arg0', 'COL']
+        from gobbagextract import __main__ as module
+
+        with patch.object(module, "__name__", "__main__"):
+            module.init()
+            mock_main.assert_called_once_with('COL')
 
     @patch("gobbagextract.__main__.logger")
-    @patch("gobbagextract.__main__.sys")
-    @patch("gobbagextract.__main__.connect")
     @patch("gobbagextract.__main__._handle_mutation_import")
     @patch("gobbagextract.__main__.MutationsHandler")
     @patch("gobbagextract.__main__._extract_dataset_from_msg")
-    def test_main_entry_test(
-            self, mock_extract_dataset, mock_mutations_handler, mock_handle_mutation_import,
-            mock_connect, mock_sys, logger):
-        mock_sys.argv = ['module', 'panden']
-        from gobbagextract import __main__ as module
-        with patch.object(module, "__name__", "__main__"):
-            dataset = {
-                'application': 'APP NAME',
-                'catalogue': 'CAT',
-                'dataset_file': 'data/fromheader.json',
-                'entity': 'ENT',
-                'source': {'application': 'APP NAME'},
-            }
-            mock_extract_dataset.return_value = dataset
-            mock_mutations_handler.is_mutations_import.return_value = True
-            mock_handle_mutation_import.side_effect = [(1, True), (1, False)]
-            module.init()
-            mock_connect.assert_called_once()
+    def test_main(
+            self, mock_extract_dataset, mock_mutations_handler, mock_handle_mutation_import, logger):
+        collection = 'COL'
+        dataset = {
+            'application': 'APP NAME',
+            'catalogue': 'CAT',
+            'dataset_file': 'data/fromheader.json',
+            'entity': 'ENT',
+            'source': {'application': 'APP NAME'},
+        }
+        exp_msg = {'header': {'catalogue': 'bag', 'collection': collection}}
+        mock_mutations_handler.return_value = 'MUTATIONS_HANLDER'
+        mock_extract_dataset.return_value = dataset
+        mock_handle_mutation_import.side_effect = [(exp_msg, True), (exp_msg, False)]
+        main(collection)
+        mock_mutations_handler.assert_called_once_with(dataset)
+        mock_handle_mutation_import.assert_called_with(exp_msg, dataset, mock_mutations_handler.return_value)
+        self.assertEqual(mock_handle_mutation_import.call_count, 2)
 
     @patch("gobbagextract.__main__.start_workflow")
     @patch("gobbagextract.__main__._handle_mutation_import")
@@ -67,7 +74,7 @@ class TestMain(TestCase):
             self, mock_extract_dataset, mock_logger, mock_mutations_handler, mock_handle_mutation_import,
             mock_start_workflow):
 
-        mock_extract_dataset.return_value = {
+        dataset = {
             "source": {
                 "name": "Some name",
                 "application": "APP NAME",
@@ -75,8 +82,9 @@ class TestMain(TestCase):
             "catalogue": "CAT",
             "entity": "ENT"
         }
-        mock_mutations_handler.is_mutations_import.return_value = True
+
         mock_handle_mutation_import.return_value = self.mock_msg, True
+        mock_extract_dataset.return_value = dataset
 
         mocked_next_import = MutationImport()
         mocked_next_import.id = 42
@@ -87,7 +95,6 @@ class TestMain(TestCase):
         mock_mutations_handler.return_value.get_next_import.return_value = (mocked_next_import, updated_dataset, date)
         msg = handle_bag_extract_message(self.mock_msg)
 
-        mock_mutations_handler.is_mutations_import.assert_called_with(mock_extract_dataset.return_value)
         result_msg = {
             'dataset_file': 'data/somefile.json',
             'header': {
@@ -127,7 +134,6 @@ class TestMain(TestCase):
             'source': {'application': 'APP NAME'},
         }
         mock_mutations_handler = Mock()
-        mock_mutations_handler.is_mutations_import.return_value = True
 
         mocked_last_import = MutationImport()
         mocked_next_import = MutationImport()
@@ -142,7 +148,6 @@ class TestMain(TestCase):
 
         _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
 
-        # mock_mutations_handler.is_mutations_import.assert_called_with(mock_extract_dataset.return_value)
         mock_repo.return_value.get_last.assert_called_with('CAT', 'ENT', 'APP NAME')
         mock_repo.return_value.save.assert_called_with(mocked_next_import)
 
