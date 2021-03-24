@@ -58,6 +58,7 @@ node('GOBBUILD') {
                         def image = docker.image("${DOCKER_IMAGE_NAME}")
                         image.pull()
                         image.push("develop")
+                        image.push("test")
                     }
                 }
             }
