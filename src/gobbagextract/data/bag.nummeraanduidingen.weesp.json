@@ -1,0 +1,17 @@
+{
+  "version": "0.1",
+  "catalogue": "bag",
+  "entity": "nummeraanduidingen",
+  "source": {
+    "name": "Kadaster",
+    "application": "BAGExtract",
+    "entity_id": "identificatie",
+    "read_config": {
+      "object_type": "NUM",
+      "xml_object": "Nummeraanduiding",
+      "gemeentes": [
+        "0457"
+      ]
+    }
+  }
+}

@@ -1,0 +1,10 @@
+# Database migrations
+
+# The baseline version is made with
+alembic revision --autogenerate -m "baseline"
+
+# Migrations are generated with
+alembic revision --autogenerate -m "<description>"
+
+# To update the database
+alembic upgrade head

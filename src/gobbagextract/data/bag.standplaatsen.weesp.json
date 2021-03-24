@@ -1,0 +1,17 @@
+{
+  "version": "0.1",
+  "catalogue": "bag",
+  "entity": "standplaatsen",
+  "source": {
+    "name": "Kadaster",
+    "application": "BAGExtract",
+    "entity_id": "identificatie",
+    "read_config": {
+      "object_type": "STA",
+      "xml_object": "Standplaats",
+      "gemeentes": [
+        "0457"
+      ]
+    }
+  }
+}

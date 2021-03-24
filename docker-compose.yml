@@ -1,0 +1,41 @@
+version: '3.0'
+
+services:
+
+  gobbagextract:
+    build: src
+    container_name: gobbagextract
+    environment:
+      MESSAGE_BROKER_ADDRESS: rabbitmq
+      GOB_SHARED_DIR: /app/shared
+      SECURE_SALT: insecure
+      SECURE_PASSWORD: insecure
+      GOB_BAGEXTRACT_DATABASE_HOST: bagextract_database
+      GOB_BAGEXTRACT_DATABASE_PORT: 5432
+    env_file: .env
+    volumes:
+      - gob-volume:/app/shared
+    depends_on:
+      - bagextract_database
+
+  bagextract_database:
+    image: amsterdam/postgres11
+    ports:
+      - "5413:5432"
+    container_name: bagextract_database
+    environment:
+      POSTGRES_PASSWORD: insecure
+      POSTGRES_DB: gob_bagextract
+      POSTGRES_USER: gob
+    volumes:
+      - "~/.ssh/datapunt.key:/root/.ssh/datapunt.key"
+    shm_size: '1gb'
+
+volumes:
+  gob-volume:
+    external: true
+
+networks:
+  default:
+    external:
+      name: gob-network
