@@ -6,7 +6,7 @@ from gobcore.enum import ImportMode
 
 from gobbagextract.__main__ import \
     SERVICEDEFINITION, handle_bag_extract_message, NothingToDo, _handle_mutation_import, \
-    BAG_EXTRACT, _extract_dataset_from_msg, GOBException, main
+    _extract_dataset_from_msg, GOBException
 
 from gobbagextract.database.model import MutationImport
 
@@ -33,46 +33,28 @@ class TestMain(TestCase):
             mock_messagedriven_service.assert_called_once_with(SERVICEDEFINITION, "BagExtract")
 
     @patch("gobbagextract.__main__.sys")
-    @patch("gobbagextract.__main__.main")
-    def test_init_wth_args(self, mock_main, mock_sys):
-        mock_sys.argv = ['arg0', 'COL']
+    @patch("gobbagextract.__main__.handle_bag_extract_message")
+    def test_init_wth_args(self, mock_handle_bag_extract_message, mock_sys):
+        collection = 'COL'
+        mock_sys.argv = ['arg0', collection]
+        msg = {
+            'header': {
+                'catalogue': 'bag',
+                'collection': collection,
+            }
+        }
         from gobbagextract import __main__ as module
 
         with patch.object(module, "__name__", "__main__"):
             module.init()
-            mock_main.assert_called_once_with('COL')
+            mock_handle_bag_extract_message.assert_called_once_with(msg)
 
-    @patch("gobbagextract.__main__.logger")
-    @patch("gobbagextract.__main__._handle_mutation_import")
-    @patch("gobbagextract.__main__.MutationsHandler")
-    @patch("gobbagextract.__main__._extract_dataset_from_msg")
-    def test_main(
-            self, mock_extract_dataset, mock_mutations_handler, mock_handle_mutation_import, logger):
-        collection = 'COL'
-        dataset = {
-            'application': 'APP NAME',
-            'catalogue': 'CAT',
-            'dataset_file': 'data/fromheader.json',
-            'entity': 'ENT',
-            'source': {'application': 'APP NAME'},
-        }
-        exp_msg = {'header': {'catalogue': 'bag', 'collection': collection}}
-        mock_mutations_handler.return_value = 'MUTATIONS_HANLDER'
-        mock_extract_dataset.return_value = dataset
-        mock_handle_mutation_import.side_effect = [(exp_msg, True), (exp_msg, False)]
-        main(collection)
-        mock_mutations_handler.assert_called_once_with(dataset)
-        mock_handle_mutation_import.assert_called_with(exp_msg, dataset, mock_mutations_handler.return_value)
-        self.assertEqual(mock_handle_mutation_import.call_count, 2)
-
-    @patch("gobbagextract.__main__.start_workflow")
     @patch("gobbagextract.__main__._handle_mutation_import")
     @patch("gobbagextract.__main__.MutationsHandler")
     @patch("gobbagextract.__main__.logger")
     @patch("gobbagextract.__main__._extract_dataset_from_msg")
     def test_handle_bag_extract_message(
-            self, mock_extract_dataset, mock_logger, mock_mutations_handler, mock_handle_mutation_import,
-            mock_start_workflow):
+            self, mock_extract_dataset, mock_logger, mock_mutations_handler, mock_handle_mutation_import):
 
         dataset = {
             "source": {
@@ -83,7 +65,7 @@ class TestMain(TestCase):
             "entity": "ENT"
         }
 
-        mock_handle_mutation_import.return_value = self.mock_msg, True
+        mock_handle_mutation_import.side_effect = (self.mock_msg, True), (self.mock_msg, False)
         mock_extract_dataset.return_value = dataset
 
         mocked_next_import = MutationImport()
@@ -111,13 +93,6 @@ class TestMain(TestCase):
         self.assertEqual(result_msg, self.mock_msg)
         self.assertEqual(msg, self.mock_msg)
 
-        mock_start_workflow.assert_called_once()
-        mock_start_workflow.assert_called_with(
-            {'workflow_name': BAG_EXTRACT}, {'catalogue': 'CAT', 'application': 'APP NAME', 'entity': 'ENT'})
-
-        # No mutations left
-        mock_handle_mutation_import.return_value = self.mock_msg, False
-        handle_bag_extract_message(self.mock_msg)
         mock_logger.info.assert_called_with("This was the last file to be exctracted for now.")
 
     @patch("gobbagextract.__main__.PrepareClient")
