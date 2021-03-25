@@ -2,8 +2,9 @@ from datetime import datetime
 
 from gobcore.enum import ImportMode
 from gobcore.logging.logger import logger
-from gobconfig.datastore.config import get_datastore_config
+from gobconfig.datastore.config import TYPE_POSTGRES
 
+from gobbagextract.config import DATABASE_CONFIG
 from gobbagextract.datastore.postgres import PostgresDatastoreExt
 from gobbagextract.selector.datastore_to_postgres import DatastoreToPostgresSelector
 from gobbagextract.datastore.bag_extract import BagExtractDatastore
@@ -25,7 +26,8 @@ class PrepareClient:
         read_config = dataset.get('source', {}).get('read_config', {})
         read_config['mode'] = mode
         self._data_src = BagExtractDatastore(dict(), read_config, last_date)
-        data_store_config = get_datastore_config('BAGExtract')
+        data_store_config = DATABASE_CONFIG | {'type': TYPE_POSTGRES}
+        data_store_config.pop('drivername')
         self._data_dst = PostgresDatastoreExt(data_store_config)
         self.source_app = self.dataset.get('source', {}).get('application')
         self._config = {

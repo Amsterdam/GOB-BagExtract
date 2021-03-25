@@ -3,15 +3,17 @@ from unittest import TestCase
 from unittest.mock import patch, Mock
 
 from gobcore.enum import ImportMode
+from gobconfig.datastore.config import TYPE_POSTGRES
+
+from gobbagextract.config import DATABASE_CONFIG
 from gobbagextract.prepare.prepare_client import PrepareClient
 
 
 class TestPrepareClient(TestCase):
 
     @patch('gobbagextract.prepare.prepare_client.PostgresDatastoreExt')
-    @patch('gobbagextract.prepare.prepare_client.get_datastore_config')
     @patch('gobbagextract.prepare.prepare_client.BagExtractDatastore')
-    def test_init(self, mock_BagExtractDatastore, mock_get_datastore_config, mock_postgres_ds):
+    def test_init(self, mock_BagExtractDatastore, mock_postgres_ds):
         dataset = {
             'catalogue': 'bag',
             'entity': 'ENT',
@@ -29,11 +31,11 @@ class TestPrepareClient(TestCase):
         mode = ImportMode.FULL
         last_date = datetime.datetime.now().date()
         read_config = dataset['source']['read_config']
-        ds_config = 'DS_CONFIG'
-        mock_get_datastore_config.return_value = ds_config
         PrepareClient(msg, dataset, mode, last_date)
         mock_BagExtractDatastore.assert_called_with({}, read_config, last_date)
         mock_postgres_ds.assert_called_once()
+        ds_config = DATABASE_CONFIG | {'type': TYPE_POSTGRES}
+        ds_config.pop('drivername')
         mock_postgres_ds.assert_called_with(ds_config)
 
     def test_connect(self):
