@@ -60,8 +60,9 @@ class TestPrepareClient(TestCase):
     def test_import_data(self, mock_ds_to_postgres_selector):
         client = Mock()
         client._data_src = 'SRC'
-        client._data_dst = 'DST'
+        client._data_dst = Mock()
         client._config = 'CONFIG'
+        client._destination_table = 'A_TABLE'
         nr_rows = 10
         selector = Mock()
         selector.select = Mock()
@@ -73,6 +74,7 @@ class TestPrepareClient(TestCase):
         client.get_result_msg.assert_called_once()
         client.get_result_msg.assert_called_once()
         selector.select.assert_called_once()
+        client._data_dst.query.assert_called_with('VACUUM FULL A_TABLE;')
 
     @patch('gobbagextract.prepare.prepare_client.logger')
     def test_get_result_message(self, mock_logger):

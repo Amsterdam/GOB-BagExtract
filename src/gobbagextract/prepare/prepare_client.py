@@ -30,9 +30,10 @@ class PrepareClient:
         data_store_config.pop('drivername')
         self._data_dst = PostgresDatastoreExt(data_store_config)
         self.source_app = self.dataset.get('source', {}).get('application')
+        self._destination_table = '_'.join((dataset['catalogue'], dataset['entity']))
         self._config = {
             'destination_table': {
-                'name': '_'.join((dataset['catalogue'], dataset['entity'])),
+                'name': self._destination_table,
                 'columns': self.columns_def,
             },
             'ignore_missing': False,
@@ -66,6 +67,7 @@ class PrepareClient:
         selector = DatastoreToPostgresSelector(self._data_src, self._data_dst, self._config)
         nr_rows = selector.select()
         ret = self.get_result_msg(nr_rows)
+        self._data_dst.query(f'VACUUM FULL {self._destination_table};')
         self.disconnect()
         return ret
 
