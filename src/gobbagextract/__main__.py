@@ -47,14 +47,14 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
 
         prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
 
-        prepare_client.import_dataset()
+        result_msg = prepare_client.import_dataset()
         mutation_import.ended_at = datetime.datetime.utcnow()
 
         repo.save(mutation_import)
         logger.info("Mutation import ended. Saving state in database")
 
         next_mutations = mutations_handler.have_next(mutation_import)
-    return msg, next_mutations
+    return result_msg, next_mutations
 
 
 def handle_bag_extract_message(msg: dict) -> dict:
@@ -68,13 +68,15 @@ def handle_bag_extract_message(msg: dict) -> dict:
     }
     logger.configure(msg, "BAG EXTRACT")
     mutations_handler = MutationsHandler(dataset)
+    # Assume there is always one mutation available.
+    # After handling of one mutation, check if there are more.
     next_mutation = True
     while next_mutation:
-        nsg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
+        import_msg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
         if next_mutation:
-            logger.info('Next mutaion is available, keep processing')
+            logger.info('Next mutation is available, keep processing')
     logger.info("This was the last file to be exctracted for now.")
-    return msg
+    return import_msg
 
 
 def _extract_dataset_from_msg(msg):
