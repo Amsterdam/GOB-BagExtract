@@ -35,7 +35,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
         try:
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
-            logger.error(f"Nothing to do: {e}")
+            logger.warning(f"Nothing to do: {e}")
             msg['summary'] = logger.get_summary()
             return msg, False
 
@@ -45,7 +45,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
         dataset = updated_dataset
         mode = ImportMode(mutation_import.mode)
 
-        prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
+        msg = prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
 
         prepare_client.import_dataset()
         mutation_import.ended_at = datetime.datetime.utcnow()
@@ -70,7 +70,7 @@ def handle_bag_extract_message(msg: dict) -> dict:
     mutations_handler = MutationsHandler(dataset)
     next_mutation = True
     while next_mutation:
-        nsg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
+        msg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
         if next_mutation:
             logger.info('Next mutaion is available, keep processing')
     logger.info("This was the last file to be exctracted for now.")
