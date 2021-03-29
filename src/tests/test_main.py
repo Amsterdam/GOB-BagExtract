@@ -136,6 +136,7 @@ class TestMain(TestCase):
         mock_mutations_handler.get_next_import.side_effect = NothingToDo()
         dataset = {'header': 'bello'}
         ret = _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
+        mock_logger.warning.assert_called_once()
         self.assertEqual(ret[1], False)
 
     @patch("gobbagextract.__main__.get_extract_definition")
