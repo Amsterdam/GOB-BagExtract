@@ -72,7 +72,7 @@ def handle_bag_extract_message(msg: dict) -> dict:
     while next_mutation:
         msg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
         if next_mutation:
-            logger.info('Next mutaion is available, keep processing')
+            logger.info('Next mutation is available, keep processing')
     logger.info("This was the last file to be exctracted for now.")
     return msg
 
