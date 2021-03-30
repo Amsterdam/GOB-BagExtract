@@ -11,11 +11,22 @@ from gobcore.message_broker.messagedriven_service import messagedriven_service
 from gobbagextract.extract_config.extract_config import get_extract_definition
 from gobbagextract.database.connection import connect
 from gobbagextract.database.session import DatabaseSession
-from gobbagextract.database.repository import MutationImportRepository
+from gobbagextract.database.repository import MutationImportRepository, MutationImport
 from gobbagextract.mutations.exception import NothingToDo
 
 from gobbagextract.mutations.handler import MutationsHandler
 from gobbagextract.prepare.prepare_client import PrepareClient
+
+
+def _log_no_more_left(logger: logger.LoggerManager, last_import: MutationImport):
+    if last_import is None:
+        logger.error("No mutations available and no mutations stored yet")
+    else:
+        interval = datetime.datetime.now() - last_import.ended_at
+        if interval.days > 5:
+            logger.error(f"No mutations available for {interval} days")
+        elif interval.days > 2:
+            logger.warning(f"No mutation available, last mutation was {interval} ago")
 
 
 def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: MutationsHandler) -> [str, bool]:
@@ -36,6 +47,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
+            _log_no_more_left(logger, last_import)
             msg['summary'] = logger.get_summary()
             return msg, False
 
@@ -45,9 +57,9 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
         dataset = updated_dataset
         mode = ImportMode(mutation_import.mode)
 
-        msg = prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
+        prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
 
-        prepare_client.import_dataset()
+        msg = prepare_client.import_dataset()
         mutation_import.ended_at = datetime.datetime.utcnow()
 
         repo.save(mutation_import)

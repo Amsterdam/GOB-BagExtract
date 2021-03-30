@@ -1,12 +1,14 @@
-import datetime
+from datetime import datetime
 from unittest import TestCase
 from unittest.mock import patch, Mock
+from freezegun import freeze_time
+from dateutil import relativedelta
 
 from gobcore.enum import ImportMode
 
 from gobbagextract.__main__ import \
     SERVICEDEFINITION, handle_bag_extract_message, NothingToDo, _handle_mutation_import, \
-    _extract_dataset_from_msg, GOBException
+    _extract_dataset_from_msg, GOBException, _log_no_more_left
 
 from gobbagextract.database.model import MutationImport
 
@@ -73,7 +75,7 @@ class TestMain(TestCase):
         mocked_next_import.mode = ImportMode.MUTATIONS
 
         updated_dataset = "UPDATED DATASET"
-        date = datetime.datetime.now().date()
+        date = datetime.now().date()
         mock_mutations_handler.return_value.get_next_import.return_value = (mocked_next_import, updated_dataset, date)
         msg = handle_bag_extract_message(self.mock_msg)
 
@@ -118,7 +120,7 @@ class TestMain(TestCase):
         mock_repo.return_value.get_last.return_value = mocked_last_import
 
         updated_dataset = "UPDATED DATASET"
-        date = datetime.datetime.now().date()
+        date = datetime.now().date()
         mock_mutations_handler.get_next_import.return_value = (mocked_next_import, updated_dataset, date)
 
         _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
@@ -131,13 +133,15 @@ class TestMain(TestCase):
     @patch("gobbagextract.__main__.DatabaseSession")
     @patch("gobbagextract.__main__.MutationImportRepository")
     @patch("gobbagextract.__main__.logger")
-    def test_handle_import_msg_mutations_nothing_to_do(self, mock_logger, mock_repo, mock_session):
+    @patch("gobbagextract.__main__._log_no_more_left")
+    def test_handle_import_msg_mutations_nothing_to_do(self, _log_no_more_left, mock_logger, mock_repo, mock_session):
         mock_mutations_handler = Mock()
         mock_mutations_handler.get_next_import.side_effect = NothingToDo()
         dataset = {'header': 'bello'}
         ret = _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
         self.assertEqual(mock_logger.info.call_count, 2)
         self.assertEqual(ret[1], False)
+        _log_no_more_left.assert_called_once()
 
     @patch("gobbagextract.__main__.get_extract_definition")
     def test_extract_data_from_msg(self, mock_extract_definition):
@@ -148,3 +152,20 @@ class TestMain(TestCase):
         mock_extract_definition.assert_called_with('bag', 'panden')
         msg = {'header': {'collection': 'panden'}}
         self.assertRaises(GOBException, _extract_dataset_from_msg, msg)
+
+    @freeze_time('2013-04-09')
+    def test_log_no_more_left(self):
+        logger = Mock()
+        logger.error = Mock()
+        logger.info = Mock()
+        logger.warning = Mock()
+        _log_no_more_left(logger, None)
+        logger.error.assert_called_once()
+        last_import = Mock()
+        last_import.ended_at = datetime.now() - relativedelta.relativedelta(days=6)
+        logger.error.reset_mock()
+        _log_no_more_left(logger, last_import)
+        last_import.ended_at = datetime.now() - relativedelta.relativedelta(days=3)
+        logger.error.reset_mock()
+        _log_no_more_left(logger, last_import)
+        logger.warning.assert_called_once()
