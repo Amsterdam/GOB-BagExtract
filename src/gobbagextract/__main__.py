@@ -35,7 +35,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
         try:
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
-            logger.warning(f"Nothing to do: {e}")
+            logger.info(f"Nothing to do: {e}")
             msg['summary'] = logger.get_summary()
             return msg, False
 
