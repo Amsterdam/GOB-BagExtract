@@ -10,6 +10,7 @@ from gobbagextract.__main__ import \
     SERVICEDEFINITION, handle_bag_extract_message, NothingToDo, _handle_mutation_import, \
     _extract_dataset_from_msg, GOBException, _log_no_more_left
 
+from gobbagextract.config import BAGEXTRACT_NOT_AVAIL_DAYS_ERROR, BAGEXTRACT_NOT_AVAIL_DAYS_WARNING
 from gobbagextract.database.model import MutationImport
 
 
@@ -153,19 +154,22 @@ class TestMain(TestCase):
         msg = {'header': {'collection': 'panden'}}
         self.assertRaises(GOBException, _extract_dataset_from_msg, msg)
 
+    @patch("gobbagextract.__main__.logger")
     @freeze_time('2013-04-09')
-    def test_log_no_more_left(self):
-        logger = Mock()
-        logger.error = Mock()
-        logger.info = Mock()
-        logger.warning = Mock()
-        _log_no_more_left(logger, None)
-        logger.error.assert_called_once()
+    def test_log_no_more_left(self, mock_logger):
+        mock_logger.error = Mock()
+        mock_logger.info = Mock()
+        mock_logger.warning = Mock()
+        _log_no_more_left(None)
+        mock_logger.error.assert_called_once()
         last_import = Mock()
-        last_import.ended_at = datetime.now() - relativedelta.relativedelta(days=6)
-        logger.error.reset_mock()
-        _log_no_more_left(logger, last_import)
-        last_import.ended_at = datetime.now() - relativedelta.relativedelta(days=3)
-        logger.error.reset_mock()
-        _log_no_more_left(logger, last_import)
-        logger.warning.assert_called_once()
+        last_import.ended_at = datetime.now() - relativedelta.relativedelta(days=BAGEXTRACT_NOT_AVAIL_DAYS_ERROR + 1)
+        mock_logger.error.reset_mock()
+        _log_no_more_left(last_import)
+        mock_logger.info.assert_called_once()
+        mock_logger.error.assert_called_once()
+        last_import.ended_at = datetime.now() - relativedelta.relativedelta(days=BAGEXTRACT_NOT_AVAIL_DAYS_WARNING + 1)
+        mock_logger.error.reset_mock()
+        _log_no_more_left(last_import)
+        mock_logger.warning.assert_called_once()
+        mock_logger.error.assert_not_called()

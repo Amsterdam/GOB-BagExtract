@@ -13,19 +13,21 @@ from gobbagextract.database.connection import connect
 from gobbagextract.database.session import DatabaseSession
 from gobbagextract.database.repository import MutationImportRepository, MutationImport
 from gobbagextract.mutations.exception import NothingToDo
+from gobbagextract.config import BAGEXTRACT_NOT_AVAIL_DAYS_ERROR, BAGEXTRACT_NOT_AVAIL_DAYS_WARNING
 
 from gobbagextract.mutations.handler import MutationsHandler
 from gobbagextract.prepare.prepare_client import PrepareClient
 
 
-def _log_no_more_left(logger: logger.LoggerManager, last_import: MutationImport):
+def _log_no_more_left(last_import: MutationImport):
     if last_import is None:
         logger.error("No mutations available and no mutations stored yet")
     else:
+        logger.info(f"Last processed mutation is {last_import.filename}")
         interval = datetime.datetime.now() - last_import.ended_at
-        if interval.days > 5:
+        if interval.days > BAGEXTRACT_NOT_AVAIL_DAYS_ERROR:
             logger.error(f"No mutations available for {interval} days")
-        elif interval.days > 2:
+        elif interval.days > BAGEXTRACT_NOT_AVAIL_DAYS_WARNING:
             logger.warning(f"No mutation available, last mutation was {interval} ago")
 
 
@@ -47,7 +49,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
-            _log_no_more_left(logger, last_import)
+            _log_no_more_left(last_import)
             msg['summary'] = logger.get_summary()
             return msg, False
 

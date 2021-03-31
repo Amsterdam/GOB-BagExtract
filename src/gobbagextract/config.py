@@ -11,3 +11,7 @@ DATABASE_CONFIG = {
 }
 
 BAGEXTRACT_DOWNLOAD_URL = os.getenv("BAGEXTRACT_DOWNLOAD_URL", "https://extracten.bag.kadaster.nl/lvbag/extracten")
+
+# When no BAG mutations (or full) are available, when to give a warning
+BAGEXTRACT_NOT_AVAIL_DAYS_WARNING = os.getenv("BAGEXTRACT_NOT_AVAIL_DAYS_WARNING", 2)
+BAGEXTRACT_NOT_AVAIL_DAYS_ERROR = os.getenv("BAGEXTRACT_NOT_AVAIL_DAYS_ERROR", 5)
