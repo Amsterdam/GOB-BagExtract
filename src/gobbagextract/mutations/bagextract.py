@@ -3,6 +3,8 @@ import re
 from typing import Tuple
 
 import htmllistparse
+
+from dateutil.relativedelta import relativedelta
 from gobcore.exceptions import GOBException
 from gobcore.enum import ImportMode
 from gobbagextract.config import BAGEXTRACT_DOWNLOAD_URL
@@ -17,15 +19,8 @@ class BagExtractMutationsHandler:
     def _last_full_import_date(self):
         now = datetime.date.today()
         if now.day < self.FULL_IMPORT_DAY:
-            new_month = now.month - 1
-            new_year = now.year - 1 if new_month <= 0 else now.year
-            return now.replace(
-                month=new_month if new_month > 0 else new_month + 12,
-                year=new_year,
-                day=self.FULL_IMPORT_DAY
-            )
-        else:
-            return now.replace(day=self.FULL_IMPORT_DAY)
+            now -= relativedelta(months=1)
+        return now.replace(day=self.FULL_IMPORT_DAY)
 
     def _date_gemeente_from_filename(self, filename: str) -> datetime.date:
         m = re.match(r"^BAGGEM(\d{4})L-(\d{2})(\d{2})(\d{4}).zip$", filename)

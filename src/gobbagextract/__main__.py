@@ -11,11 +11,24 @@ from gobcore.message_broker.messagedriven_service import messagedriven_service
 from gobbagextract.extract_config.extract_config import get_extract_definition
 from gobbagextract.database.connection import connect
 from gobbagextract.database.session import DatabaseSession
-from gobbagextract.database.repository import MutationImportRepository
+from gobbagextract.database.repository import MutationImportRepository, MutationImport
 from gobbagextract.mutations.exception import NothingToDo
+from gobbagextract.config import BAGEXTRACT_NOT_AVAIL_DAYS_ERROR, BAGEXTRACT_NOT_AVAIL_DAYS_WARNING
 
 from gobbagextract.mutations.handler import MutationsHandler
 from gobbagextract.prepare.prepare_client import PrepareClient
+
+
+def _log_no_more_left(last_import: MutationImport):
+    if last_import is None:
+        logger.error("No mutations available and no mutations stored yet")
+    else:
+        logger.info(f"Last processed mutation is {last_import.filename}")
+        interval = datetime.datetime.now() - last_import.ended_at
+        if interval.days > BAGEXTRACT_NOT_AVAIL_DAYS_ERROR:
+            logger.error(f"No mutations available for {interval} days")
+        elif interval.days > BAGEXTRACT_NOT_AVAIL_DAYS_WARNING:
+            logger.warning(f"No mutation available, last mutation was {interval} ago")
 
 
 def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: MutationsHandler) -> [str, bool]:
@@ -35,7 +48,8 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
         try:
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
-            logger.error(f"Nothing to do: {e}")
+            logger.info(f"Nothing to do: {e}")
+            _log_no_more_left(last_import)
             msg['summary'] = logger.get_summary()
             return msg, False
 
@@ -47,7 +61,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
 
         prepare_client = PrepareClient(msg, dataset, mode, mutation_date)
 
-        prepare_client.import_dataset()
+        msg = prepare_client.import_dataset()
         mutation_import.ended_at = datetime.datetime.utcnow()
 
         repo.save(mutation_import)
@@ -70,9 +84,9 @@ def handle_bag_extract_message(msg: dict) -> dict:
     mutations_handler = MutationsHandler(dataset)
     next_mutation = True
     while next_mutation:
-        nsg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
+        msg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
         if next_mutation:
-            logger.info('Next mutaion is available, keep processing')
+            logger.info('Next mutation is available, keep processing')
     logger.info("This was the last file to be exctracted for now.")
     return msg
 
