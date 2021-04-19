@@ -26,7 +26,7 @@ services:
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_DB: gob_bagextract
-      POSTGRES_USER: gob
+      POSTGRES_USER: gob_bagextract
     volumes:
       - "~/.ssh/datapunt.key:/root/.ssh/datapunt.key"
     shm_size: '1gb'
