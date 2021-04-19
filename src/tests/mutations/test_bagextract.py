@@ -16,17 +16,16 @@ class TestBagExtractMutationsHandler(TestCase):
 
         testcases = [
             # (now, result)
-            ("2021-02-08 09:30:00", "2021-01-15"),
-            ("2021-02-01 09:30:00", "2021-01-15"),
-            ("2021-02-15 09:30:00", "2021-02-15"),
-            ("2021-02-27 09:30:00", "2021-02-15"),
-            ("2021-01-15 09:30:00", "2021-01-15"),
-            ("2021-01-14 09:30:00", "2020-12-15"),
+            ("2021-02-08", "2021-01-15"),
+            ("2021-02-01", "2021-01-15"),
+            ("2021-02-15", "2021-02-15"),
+            ("2021-02-27", "2021-02-15"),
+            ("2021-01-15", "2021-01-15"),
+            ("2021-01-14", "2020-12-15"),
         ]
 
         for now, result in testcases:
-            with freeze_time(now):
-                self.assertEqual(result, handler._last_full_import_date().strftime("%Y-%m-%d"))
+           self.assertEqual(result, handler._last_full_import_date(datetime.date.fromisoformat(now)).strftime("%Y-%m-%d"))
 
     def test_date_gemeente_from_filename(self):
         testcases = [
@@ -99,7 +98,7 @@ class TestBagExtractMutationsHandler(TestCase):
 
         with freeze_time("2021-02-10"):
             with self.assertRaises(GOBException):
-                handler._get_last_full_import_location('0123')
+                handler._get_last_full_import_location('0123', datetime.date.today())
 
     def test_handle_import(self):
         dataset = {
@@ -127,6 +126,7 @@ class TestBagExtractMutationsHandler(TestCase):
         ]
 
         handler._get_available_full_downloads = lambda x: [
+            'BAGGEM0123L-15122020.zip',
             'BAGGEM0123L-15012021.zip',
             'BAGGEM0123L-15012021.zip',
         ]

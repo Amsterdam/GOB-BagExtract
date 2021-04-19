@@ -16,11 +16,10 @@ class BagExtractMutationsHandler:
     # Full import every 15th of the month
     FULL_IMPORT_DAY = 15
 
-    def _last_full_import_date(self):
-        now = datetime.date.today()
-        if now.day < self.FULL_IMPORT_DAY:
-            now -= relativedelta(months=1)
-        return now.replace(day=self.FULL_IMPORT_DAY)
+    def _last_full_import_date(self, date: datetime.date):
+        if date.day < self.FULL_IMPORT_DAY:
+            date -= relativedelta(months=1)
+        return date.replace(day=self.FULL_IMPORT_DAY)
 
     def _date_gemeente_from_filename(self, filename: str) -> datetime.date:
         m = re.match(r"^BAGGEM(\d{4})L-(\d{2})(\d{2})(\d{4}).zip$", filename)
@@ -100,8 +99,8 @@ class BagExtractMutationsHandler:
         read_config = dataset.get('source', {}).get('read_config', {})
         return read_config.get('gemeentes')[0]
 
-    def _get_last_full_import_location(self, gemeente: str):
-        last_full_date = self._last_full_import_date()
+    def _get_last_full_import_location(self, gemeente: str, date: datetime.date):
+        last_full_date = self._last_full_import_date(date)
         last_full_fname = self._full_filename(last_full_date, gemeente)
 
         if last_full_fname not in self._get_available_full_downloads(gemeente):
@@ -112,7 +111,7 @@ class BagExtractMutationsHandler:
         gemeente = self._get_gemeente(dataset)
 
         if not last_import:
-            date = self._last_full_import_date()
+            date = self._last_full_import_date(datetime.date.today())
             mode, fname = self.start_full(date, gemeente)
         elif not last_import.is_ended():
             mode, fname, date = self.restart_import(last_import)
@@ -130,7 +129,7 @@ class BagExtractMutationsHandler:
             # The BAGExtract Datastore needs the last full download location as well to determine the ID's to import
             update_config = {
                 'download_location': f"{self._get_mutations_download_path()}{fname}",
-                'last_full_download_location': self._get_last_full_import_location(gemeente),
+                'last_full_download_location': self._get_last_full_import_location(gemeente, date),
             }
         else:
             update_config = {
