@@ -50,7 +50,10 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
             _log_no_more_left(last_import)
-            msg['summary'] = logger.get_summary()
+            msg = {
+                'header': msg.get('header', {}),
+                'summary': logger.get_summary(),
+            }
             return msg, False
 
         repo.save(mutation_import)
