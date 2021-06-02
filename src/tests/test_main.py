@@ -139,9 +139,11 @@ class TestMain(TestCase):
         mock_mutations_handler = Mock()
         mock_mutations_handler.get_next_import.side_effect = NothingToDo()
         dataset = {'header': 'bello'}
-        ret = _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
+        msg, last = _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
+        summary = mock_logger.get_summary()
         self.assertEqual(mock_logger.info.call_count, 2)
-        self.assertEqual(ret[1], False)
+        self.assertEqual(last, False)
+        self.assertEqual(msg, {'header': self.mock_msg['header'], 'summary': summary})
         _log_no_more_left.assert_called_once()
 
     @patch("gobbagextract.__main__.get_extract_definition")
