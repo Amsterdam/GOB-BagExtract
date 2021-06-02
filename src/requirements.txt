@@ -1,5 +1,5 @@
 -e git+https://github.com/Amsterdam/GOB-Config.git@v0.4.14g#egg=gobconfig
--e git+https://github.com/Amsterdam/GOB-Core.git@v0.17.11t#egg=gobcore
+-e git+https://github.com/Amsterdam/GOB-Core.git@v0.17.11x#egg=gobcore
 alembic==1.5.5
 htmllistparse==0.6.0
 # No need to spec versions for packages only used during testing
