@@ -6,4 +6,5 @@ htmllistparse==0.6.0
 flake8
 pytest
 pytest-cov
+pytest-env==0.6.2
 freezegun

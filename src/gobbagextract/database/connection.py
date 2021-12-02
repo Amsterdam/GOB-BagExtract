@@ -25,7 +25,7 @@ def connect(force_migrate=False):
     global session, engine
 
     try:
-        print('Connectiong to DB')
+        print('Connecting to DB', DATABASE_CONFIG)
         engine = create_engine(URL(**DATABASE_CONFIG), connect_args={'sslmode': 'require'})
 
         migrate_storage(force_migrate)

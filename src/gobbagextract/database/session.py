@@ -18,6 +18,7 @@ class DatabaseSession:
 
     @classmethod
     def _init_sessionmaker(cls):
+        print("engine", engine)
         cls.Session = sessionmaker(autocommit=True, bind=engine)
 
     def __enter__(self):

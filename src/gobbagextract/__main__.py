@@ -75,8 +75,23 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
 
 
 def handle_bag_extract_message(msg: dict) -> dict:
+    """Handles messages to download bag extract data with.
 
+    Example message:
+        message = {
+           "header": {
+              "catalogue": "some catalogue",
+              "collection": "the collection",
+           }
+        }
+
+
+
+    :param msg: message with "catalogue" and "collection" keys.
+    :returns: a message with the result of the message handling.
+    """
     dataset = _extract_dataset_from_msg(msg)
+    print(dataset)
     msg['header'] |= {
         'source': dataset['source']['name'],
         'application': dataset['source']['application'],
@@ -117,6 +132,7 @@ def _extract_dataset_from_msg(msg):
 
     if not all([key in header for key in required_keys]):
         raise GOBException(f"Missing dataset keys. Expected keys: {','.join(required_keys)}")
+    print("ok")
     return get_extract_definition(header['catalogue'], header['collection'])
 
 
@@ -133,19 +149,20 @@ SERVICEDEFINITION = {
 
 
 def init():
-    if __name__ == "__main__":
-        connect()
-        if len(sys.argv) == 1:
-            messagedriven_service(SERVICEDEFINITION, "BagExtract")
-        else:
-            for collection in sys.argv[1:]:
-                msg = {
-                    'header': {
-                        'catalogue': 'bag',
-                        'collection': collection,
-                    }
+
+    connect()
+    if len(sys.argv) == 1:
+        messagedriven_service(SERVICEDEFINITION, "BagExtract")
+    else:
+        for collection in sys.argv[1:]:
+            msg = {
+                'header': {
+                    'catalogue': 'bag',
+                    'collection': collection,
                 }
-                handle_bag_extract_message(msg)
+            }
+            handle_bag_extract_message(msg)
 
 
-init()
+if __name__ == "__main__":
+    init()
