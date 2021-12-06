@@ -1,6 +1,6 @@
 # GOB-BagExtract
 
-GOB BAG extracts data van de BAG registratie en prepareedrd deze voor de import door GOB-Import
+GOB BAG extracts data van de BAG registratie en prepareert deze voor de import door GOB-Import
 
 
 # Environment variables

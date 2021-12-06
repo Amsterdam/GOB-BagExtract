@@ -91,7 +91,6 @@ def handle_bag_extract_message(msg: dict) -> dict:
     :returns: a message with the result of the message handling.
     """
     dataset = _extract_dataset_from_msg(msg)
-    print(dataset)
     msg['header'] |= {
         'source': dataset['source']['name'],
         'application': dataset['source']['application'],
@@ -132,7 +131,7 @@ def _extract_dataset_from_msg(msg):
 
     if not all([key in header for key in required_keys]):
         raise GOBException(f"Missing dataset keys. Expected keys: {','.join(required_keys)}")
-    print("ok")
+
     return get_extract_definition(header['catalogue'], header['collection'])
 
 

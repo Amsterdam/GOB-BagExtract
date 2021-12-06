@@ -47,11 +47,11 @@ def database(app_dir: Path) -> Generator[Session, None, None]:
 
 
 @pytest.fixture
-def disable_gob_logger() -> Generator[MagicMock, None, None]:
+def gob_logger_mock() -> Generator[MagicMock, None, None]:
     """Mock GOB logger.
 
     GOB logger cannot be overwritten with logging.setLoggerClass as it is not compatible with that.
-    :return: the mocked logger.
+    :return: A generator which yields the mocked logger.
     """
     with mock.patch("gobbagextract.__main__.logger") as p:
         yield p
