@@ -1,4 +1,14 @@
 import os
+from enum import Enum
+
+
+class ArtikelNummer(Enum):
+    MUT_DAG_NLD = 2529
+    MUT_MAAND_GEM = 2531
+    MUT_MAAND_NLD = 2532
+    VOL_GEM = 2535
+    VOL_NLD = 2536
+
 
 CONTAINER_BASE = os.getenv("CONTAINER_BASE", "acceptatie")
 DATABASE_CONFIG = {
@@ -10,8 +20,8 @@ DATABASE_CONFIG = {
     'database': os.getenv("GOB_BAGEXTRACT_DATABASE", 'gob_bagextract'),
 }
 
-BAGEXTRACT_DOWNLOAD_URL = os.getenv("BAGEXTRACT_DOWNLOAD_URL", "https://extracten.bag.kadaster.nl/lvbag/extracten")
-
 # When no BAG mutations (or full) are available, when to give a warning
 BAGEXTRACT_NOT_AVAIL_DAYS_WARNING = os.getenv("BAGEXTRACT_NOT_AVAIL_DAYS_WARNING", 2)
 BAGEXTRACT_NOT_AVAIL_DAYS_ERROR = os.getenv("BAGEXTRACT_NOT_AVAIL_DAYS_ERROR", 5)
+
+KADASTER_PRODUCTSTORE_URL = os.getenv('KADASTER_PRODUCTSTORE_URL')

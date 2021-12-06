@@ -11,7 +11,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker, Session
 
-from gobbagextract.config import DATABASE_CONFIG
+from gobbagextract.config import DATABASE_CONFIG, KADASTER_PRODUCTSTORE_URL
 from gobbagextract.database import connection
 from gobbagextract.database.model import Base
 
@@ -42,8 +42,10 @@ def database(app_dir: Path) -> Generator[Session, None, None]:
     Base.metadata.bind = engine
     connection.session = session
     connection.engine = engine
-    yield session
-    engine.dispose()
+    try:
+        yield session
+    finally:
+        engine.dispose()
 
 
 @pytest.fixture
@@ -55,3 +57,15 @@ def gob_logger_mock() -> Generator[MagicMock, None, None]:
     """
     with mock.patch("gobbagextract.__main__.logger") as p:
         yield p
+
+
+@pytest.fixture
+def mock_request(app_dir: Path) -> str:
+    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'request.xml'
+    return xml.read_text()
+
+
+@pytest.fixture
+def mock_response(app_dir: Path, requests_mock):
+    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response.xml'
+    requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
