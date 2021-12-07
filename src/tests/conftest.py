@@ -43,14 +43,33 @@ def set_bag_data_config(tests_dir: Path) -> Generator[None, None, None]:
 
 
 @pytest.fixture
-def database(app_dir: Path) -> Generator[Session, None, None]:
+def reset_db() -> None:
+    """Drop test database and recreate it to ensure the database is empty."""
+    test_db_name = f"test_{DATABASE_CONFIG['database']}"
+    DATABASE_CONFIG['database'] = test_db_name
+    tmp_config = DATABASE_CONFIG.copy()
+    # Cannot drop the currently open database, so do not open it.
+    tmp_config.pop("database")
+    engine_tmp: Engine = create_engine(URL(**tmp_config), echo=True)
+    with engine_tmp.connect() as conn:
+        conn.execute("commit")
+        conn.execute(f"DROP DATABASE IF EXISTS {test_db_name}")
+        conn.execute("commit")
+        conn.execute(f"CREATE DATABASE {test_db_name}")
+        conn.execute("commit")
+
+
+@pytest.fixture
+def database(app_dir: Path, reset_db: None) -> Generator[Session, None, None]:
     """Fixture which sets up the database, returns a db session.
 
     :param app_dir: path to current application source.
+    :param reset_db: fixture which resets the test database.
     :return: a generator which yields a db session.
     """
     engine: Engine = create_engine(URL(**DATABASE_CONFIG), echo=True)
     session_factory = sessionmaker(bind=engine)
+    session: Session = session_factory()
 
     # Migrate the database
     alembic_config = AlembicConfig(app_dir / "alembic.ini")
@@ -58,7 +77,6 @@ def database(app_dir: Path) -> Generator[Session, None, None]:
     alembic_upgrade(alembic_config, 'head')
 
     # Set global variables to make the app work
-    session: Session = session_factory()
     Base.metadata.bind = engine
     connection.session = session
     connection.engine = engine
