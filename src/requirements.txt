@@ -3,8 +3,9 @@
 alembic==1.5.5
 htmllistparse==0.6.0
 # No need to spec versions for packages only used during testing
-flake8
-pytest
-pytest-cov
-pytest-env==0.6.2
-freezegun
+flake8~=3.9.2
+freezegun~=1.1.0
+pytest~=6.2.5
+pytest-cov~=2.12.1
+pytest-env~=0.6.2
+requests_mock~=1.9.3

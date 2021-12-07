@@ -4,25 +4,25 @@ import glob
 import os
 from typing import Optional, Dict, Any
 
-# TODO: naming things
-
 data_set_locations_mapping_cache: Optional[Dict[Any, Any]] = None
 
 
 def get_extract_definition(
         catalogue: str, collection: str, gemeente: Optional[str] = None) -> Optional[dict]:
     data_set_locations_mapping = _build_data_set_locations_mapping()
-    collection = data_set_locations_mapping.get(catalogue, {}).get(collection, {})
-    print("collection?", collection)
-    if not collection:
-        raise Exception("Collection not found")
+    collections = data_set_locations_mapping.get(catalogue, {}).get(collection, {})
+
+    if not collections:
+        raise Exception(f"No collections found for catalogue: {catalogue}, collection: {collection}.")
+
     if gemeente:
-        return collection.get(gemeente)
+        return collections.get(gemeente)
     # Must have single gemeente
-    return collection[list(collection.keys())[0]]
+    return collections[list(collections.keys())[0]]
 
 
 def _build_data_set_locations_mapping():
+    global data_set_locations_mapping_cache
     DATA_DIR = os.environ.get(
         "BAG_DATA_CONFIG",
         os.path.join(os.path.dirname(__file__), '..', 'data')
@@ -41,8 +41,6 @@ def _build_data_set_locations_mapping():
         catalogue = d['catalogue']
         for gemeente in d['source']['read_config']['gemeentes']:
             mapping[catalogue][collection][gemeente] = d
-    # print(mapping)
-    return mapping
 
-
-
+    data_set_locations_mapping_cache = mapping
+    return data_set_locations_mapping_cache
