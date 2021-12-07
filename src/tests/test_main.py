@@ -81,39 +81,39 @@ class TestMain(TestCase):
         self.assertEqual(result_msg, self.mock_msg)
         self.assertEqual(msg, self.mock_msg)
         mock_logger.info.assert_called_with("This was the last file to be exctracted for now.")
-
-    @patch("gobbagextract.__main__.PrepareClient")
-    @patch("gobbagextract.__main__.DatabaseSession")
-    @patch("gobbagextract.__main__.MutationImportRepository")
-    @patch("gobbagextract.__main__.logger")
-    def test_handle_import_msg_mutations(self, mock_logger, mock_repo, mock_session, mock_client):
-
-        dataset = {
-            'application': 'APP NAME',
-            'catalogue': 'CAT',
-            'dataset_file': 'data/fromheader.json',
-            'entity': 'ENT',
-            'source': {'application': 'APP NAME'},
-        }
-        mock_mutations_handler = Mock()
-
-        mocked_last_import = MutationImport()
-        mocked_next_import = MutationImport()
-        mocked_next_import.id = 42
-        mocked_next_import.mode = ImportMode.MUTATIONS
-
-        mock_repo.return_value.get_last.return_value = mocked_last_import
-
-        updated_dataset = "UPDATED DATASET"
-        date = datetime.now().date()
-        mock_mutations_handler.get_next_import.return_value = (mocked_next_import, updated_dataset, date)
-
-        _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
-
-        mock_repo.return_value.get_last.assert_called_with('CAT', 'ENT', 'APP NAME')
-        mock_repo.return_value.save.assert_called_with(mocked_next_import)
-
-        mock_client.assert_called_with(self.mock_msg, updated_dataset, ImportMode.MUTATIONS, date)
+    #
+    # @patch("gobbagextract.__main__.PrepareClient")
+    # @patch("gobbagextract.__main__.DatabaseSession")
+    # @patch("gobbagextract.__main__.MutationImportRepository")
+    # @patch("gobbagextract.__main__.logger")
+    # def test_handle_import_msg_mutations(self, mock_logger, mock_repo, mock_session, mock_client):
+    #
+    #     dataset = {
+    #         'application': 'APP NAME',
+    #         'catalogue': 'CAT',
+    #         'dataset_file': 'data/fromheader.json',
+    #         'entity': 'ENT',
+    #         'source': {'application': 'APP NAME'},
+    #     }
+    #     mock_mutations_handler = Mock()
+    #
+    #     mocked_last_import = MutationImport()
+    #     mocked_next_import = MutationImport()
+    #     mocked_next_import.id = 42
+    #     mocked_next_import.mode = ImportMode.MUTATIONS
+    #
+    #     mock_repo.return_value.get_last.return_value = mocked_last_import
+    #
+    #     updated_dataset = "UPDATED DATASET"
+    #     date = datetime.now().date()
+    #     mock_mutations_handler.get_next_import.return_value = (mocked_next_import, updated_dataset, date)
+    #
+    #     _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
+    #
+    #     mock_repo.return_value.get_last.assert_called_with('CAT', 'ENT', 'APP NAME')
+    #     mock_repo.return_value.save.assert_called_with(mocked_next_import)
+    #
+    #     mock_client.assert_called_with(self.mock_msg, updated_dataset, ImportMode.MUTATIONS, date)
 
     @patch("gobbagextract.__main__.DatabaseSession")
     @patch("gobbagextract.__main__.MutationImportRepository")

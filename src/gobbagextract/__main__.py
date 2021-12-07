@@ -22,7 +22,7 @@ def _log_no_more_left(last_import: MutationImport):
     if last_import is None:
         logger.error("No mutations available and no mutations stored yet")
     else:
-        logger.info(f"Last processed mutation is {last_import.filename}")
+        print(f"Last processed mutation is {last_import.filename}")
         interval = datetime.datetime.now() - last_import.ended_at
         if interval.days > BAGEXTRACT_NOT_AVAIL_DAYS_ERROR:
             logger.error(f"No mutations available for {interval} days")
@@ -43,12 +43,12 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
     with DatabaseSession() as session:
         repo = MutationImportRepository(session)
         last_import = repo.get_last(dataset.get('catalogue'), dataset.get('entity'), dataset.get('source', {})
-                                    .get('application'))
+                                    .get('application'))  # deze is al mis
         try:
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
-            print(e)
+            print(last_import)
             _log_no_more_left(last_import)
             msg = {
                 'header': msg.get('header', {}),

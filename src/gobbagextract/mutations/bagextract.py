@@ -1,6 +1,6 @@
 import datetime
 import re
-from typing import Tuple
+from typing import Tuple, Optional
 
 import htmllistparse
 
@@ -21,7 +21,7 @@ class BagExtractMutationsHandler:
             date -= relativedelta(months=1)
         return date.replace(day=self.FULL_IMPORT_DAY)
 
-    def _date_gemeente_from_filename(self, filename: str) -> datetime.date:
+    def _date_gemeente_from_filename(self, filename: str) -> Tuple[datetime.date, Optional[str]]:
         m = re.match(r"^BAGGEM(\d{4})L-(\d{2})(\d{2})(\d{4}).zip$", filename)
         if m:
             return datetime.date(int(m.group(4)), int(m.group(3)), int(m.group(2))), m.group(1)
@@ -41,6 +41,7 @@ class BagExtractMutationsHandler:
         return f"{BAGEXTRACT_DOWNLOAD_URL}/Nederland dagmutaties/"
 
     def _list_path(self, path: str):
+        print(path)
         _, listing = htmllistparse.fetch_listing(path)
         return [entry.name for entry in listing]
 
@@ -52,7 +53,9 @@ class BagExtractMutationsHandler:
 
     def restart_import(self, last_import: MutationImport) -> Tuple[ImportMode, str, datetime.date]:
         mode = last_import.mode
+        print(last_import.filename)
         date, gemeente = self._date_gemeente_from_filename(last_import.filename)
+        print(date)
 
         if mode == ImportMode.FULL.value:
             ret = self.start_full(date, gemeente)
@@ -79,7 +82,6 @@ class BagExtractMutationsHandler:
 
     def start_full(self, date: datetime.date, gemeente: str) -> Tuple[ImportMode, str]:
         fname = self._full_filename(date, gemeente)
-
         if fname not in self._get_available_full_downloads(gemeente):
             # TODO: This implies when file is not yet availble on the 15th we
             # are failing this workflow!
@@ -109,7 +111,6 @@ class BagExtractMutationsHandler:
 
     def handle_import(self, last_import: MutationImport, dataset: dict) -> Tuple[MutationImport, dict, datetime.date]:
         gemeente = self._get_gemeente(dataset)
-
         if not last_import:
             date = self._last_full_import_date(datetime.date.today())
             mode, fname = self.start_full(date, gemeente)
