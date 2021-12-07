@@ -1,3 +1,4 @@
+import os
 from pathlib import Path
 from typing import Generator
 from unittest import mock
@@ -14,12 +15,31 @@ from sqlalchemy.orm import sessionmaker, Session
 from gobbagextract.config import DATABASE_CONFIG
 from gobbagextract.database import connection
 from gobbagextract.database.model import Base
+from gobbagextract.extract_config import extract_config
 
 
 @pytest.fixture
 def app_dir() -> Path:
-    """Returns directory which contains tests. Used to find files required for tests."""
+    """Returns directory which contains the app source."""
     return Path(__file__).parent.parent
+
+
+@pytest.fixture
+def tests_dir() -> Path:
+    """Returns directory which contains tests. Used to find files required for tests."""
+    return Path(__file__).parent
+
+
+@pytest.fixture(autouse=True)
+def set_bag_data_config(tests_dir: Path) -> Generator[None, None, None]:
+    """Invalidate cached location mapping cache, set fixture dir.
+
+    Cache should be invalidated to avoid leaking state between tests.
+    """
+    extract_config.data_set_locations_mapping_cache = None
+    os.environ["BAG_DATA_CONFIG"] = str(tests_dir / "fixtures" / "bag_data")
+    yield
+    extract_config.data_set_locations_mapping_cache = None
 
 
 @pytest.fixture

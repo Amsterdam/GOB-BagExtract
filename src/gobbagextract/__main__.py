@@ -1,22 +1,21 @@
-import sys
 import datetime
+from typing import Dict, Any
 
-from gobcore.message_broker.config import WORKFLOW_EXCHANGE, BAG_EXTRACT_QUEUE, BAG_EXTRACT_RESULT_KEY
+import sys
 
+from gobbagextract.config import BAGEXTRACT_NOT_AVAIL_DAYS_ERROR, BAGEXTRACT_NOT_AVAIL_DAYS_WARNING
+from gobbagextract.database.connection import connect
+from gobbagextract.database.repository import MutationImportRepository, MutationImport
+from gobbagextract.database.session import DatabaseSession
+from gobbagextract.extract_config.extract_config import get_extract_definition
+from gobbagextract.mutations.exception import NothingToDo
+from gobbagextract.mutations.handler import MutationsHandler
+from gobbagextract.prepare.prepare_client import PrepareClient
 from gobcore.enum import ImportMode
 from gobcore.exceptions import GOBException
 from gobcore.logging.logger import logger
+from gobcore.message_broker.config import WORKFLOW_EXCHANGE, BAG_EXTRACT_QUEUE, BAG_EXTRACT_RESULT_KEY
 from gobcore.message_broker.messagedriven_service import messagedriven_service
-
-from gobbagextract.extract_config.extract_config import get_extract_definition
-from gobbagextract.database.connection import connect
-from gobbagextract.database.session import DatabaseSession
-from gobbagextract.database.repository import MutationImportRepository, MutationImport
-from gobbagextract.mutations.exception import NothingToDo
-from gobbagextract.config import BAGEXTRACT_NOT_AVAIL_DAYS_ERROR, BAGEXTRACT_NOT_AVAIL_DAYS_WARNING
-
-from gobbagextract.mutations.handler import MutationsHandler
-from gobbagextract.prepare.prepare_client import PrepareClient
 
 
 def _log_no_more_left(last_import: MutationImport):
@@ -49,6 +48,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
+            print(e)
             _log_no_more_left(last_import)
             msg = {
                 'header': msg.get('header', {}),
@@ -75,7 +75,7 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
 
 
 def handle_bag_extract_message(msg: dict) -> dict:
-    """Handles messages to download bag extract data with.
+    """Handles messages to download BAG extract data with.
 
     Example message:
         message = {
@@ -90,7 +90,11 @@ def handle_bag_extract_message(msg: dict) -> dict:
     :param msg: message with "catalogue" and "collection" keys.
     :returns: a message with the result of the message handling.
     """
-    dataset = _extract_dataset_from_msg(msg)
+    _validate_message(msg)
+    dataset = get_extract_definition(
+        collection=msg["header"]["collection"],
+        catalogue=msg["header"]["catalogue"]
+    )
     msg['header'] |= {
         'source': dataset['source']['name'],
         'application': dataset['source']['application'],
@@ -108,31 +112,33 @@ def handle_bag_extract_message(msg: dict) -> dict:
     return msg
 
 
-def _extract_dataset_from_msg(msg):
-    """Returns location of dataset file from msg.
+def _validate_message(msg: Dict[str, Any]) -> None:
+    """Validates the incoming message.
+
+    Messages should have `required_keys` set.
 
     Example message:
-
-    message = {
-       "header": {
-          "catalogue": "some catalogue",
-          "collection": "the collection",
-       }
-    }
+        message = {
+           "header": {
+              "catalogue": "some catalogue",
+              "collection": "the collection",
+           }
+        }
 
     Where 'application' is optional when there is only one known application for given catalogue and collection
 
-    :param msg:
-    :return:
+    :param msg: A message containing a catalogue and collection
+    :raises: GOBException when the message does not validate.
     """
-
     required_keys = ['catalogue', 'collection']
-    header = msg.get('header', {})
+    if "header" not in msg:
+        raise GOBException("No 'header' key in message.")
 
-    if not all([key in header for key in required_keys]):
-        raise GOBException(f"Missing dataset keys. Expected keys: {','.join(required_keys)}")
-
-    return get_extract_definition(header['catalogue'], header['collection'])
+    if not all([key in msg["header"] for key in required_keys]):
+        raise GOBException(
+            f"Missing dataset keys in message. Message: {msg['header']}. "
+            f"Expected keys: {', '.join(required_keys)}."
+        )
 
 
 SERVICEDEFINITION = {
@@ -148,7 +154,6 @@ SERVICEDEFINITION = {
 
 
 def init():
-
     connect()
     if len(sys.argv) == 1:
         messagedriven_service(SERVICEDEFINITION, "BagExtract")
@@ -163,5 +168,5 @@ def init():
             handle_bag_extract_message(msg)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     init()
