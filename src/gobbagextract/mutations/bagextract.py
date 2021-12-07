@@ -1,7 +1,7 @@
 import datetime
 import re
 import xml.etree.ElementTree as ET
-from typing import Tuple, Union, Any, NamedTuple
+from typing import Tuple, NamedTuple, Optional
 
 import requests
 from dateutil.relativedelta import relativedelta
@@ -12,17 +12,38 @@ from gobbagextract.mutations.exception import NothingToDo
 from gobcore.enum import ImportMode
 from gobcore.exceptions import GOBException
 
+RX_GEMEENTE_DATE = re.compile(r"^BAGGEM(\d{4})L-(\d{2})(\d{2})(\d{4}).zip$")
+RX_DATE = re.compile(r"^BAGNLDM-\d{8}-(\d{2})(\d{2})(\d{4}).zip$")
+
 
 class Afgifte(NamedTuple):
-    AfgifteID: str
-    Afgiftereferentie: str
-    Bestandsnaam: str
-    artikelnummer: str
-    DatumAanmelding: str
-    BeschikbaarTot: str
+    AfgifteID: str = None
+    Afgiftereferentie: str = None
+    Bestandsnaam: str = None
+    artikelnummer: str = None
+    DatumAanmelding: str = None
+    BeschikbaarTot: str = None
+
+    def get_url(self):
+        return KADASTER_PRODUCTSTORE_URL + '/' + self.AfgifteID
+
+    def get_date(self) -> datetime.date:
+        if m := RX_GEMEENTE_DATE.match(self.Bestandsnaam):
+            return datetime.date(int(m.group(4)), int(m.group(3)), int(m.group(2)))
+        if m := RX_DATE.match(self.Bestandsnaam):
+            return datetime.date(int(m.group(3)), int(m.group(2)), int(m.group(1)))
+        raise GOBException(f"Could not parse filename. Unknown format: {self.Bestandsnaam}")
+
+    def get_gemeente(self) -> Optional[str]:
+        if m := RX_GEMEENTE_DATE.match(self.Bestandsnaam):
+            return m.group(1)
+        if m := RX_DATE.match(self.Bestandsnaam):
+            return None
+        raise GOBException(f"Could not parse filename. Unknown format: {self.Bestandsnaam}")
 
 
 class BagSoapParser:
+
     MUT_REQUEST_TEMPLATE = """
     <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
                       xmlns:v20="http://www.kadaster.nl/schemas/gds2/make2stock/v20201201">
@@ -88,24 +109,10 @@ class BagExtractMutationsHandler:
     # Full import every 15th of the month
     FULL_IMPORT_DAY = 15
 
-    rx_gemeente_date = re.compile(r"^BAGGEM(\d{4})L-(\d{2})(\d{2})(\d{4}).zip$")
-    rx_date = re.compile(r"^BAGNLDM-\d{8}-(\d{2})(\d{2})(\d{4}).zip$")
-
     def _last_full_import_date(self, date: datetime.date):
         if date.day < self.FULL_IMPORT_DAY:
             date -= relativedelta(months=1)
         return date.replace(day=self.FULL_IMPORT_DAY)
-
-    def _date_gemeente_from_filename(
-            self, filename: str
-    ) -> Union[tuple[datetime.date, str], tuple[datetime.date, None]]:
-        if m := self.rx_gemeente_date.match(filename):
-            return datetime.date(int(m.group(4)), int(m.group(3)), int(m.group(2))), m.group(1)
-
-        if m := self.rx_date.match(filename):
-            return datetime.date(int(m.group(3)), int(m.group(2)), int(m.group(1))), None
-
-        raise GOBException(f"Could not parse filename. Unknown format: {filename}")
 
     def _datestr(self, date: datetime.date) -> str:
         return date.strftime("%d%m%Y")
@@ -122,7 +129,8 @@ class BagExtractMutationsHandler:
 
     def restart_import(self, last_import: MutationImport) -> Tuple[ImportMode, Afgifte, datetime.date]:
         mode = last_import.mode
-        date, gemeente = self._date_gemeente_from_filename(last_import.filename)
+        afgifte = Afgifte(Bestandsnaam=last_import.filename)
+        date, gemeente = afgifte.get_date(), afgifte.get_gemeente()
 
         if mode == ImportMode.FULL.value:
             ret = self.get_full(date, gemeente)
@@ -132,7 +140,7 @@ class BagExtractMutationsHandler:
         return ret + (date,)
 
     def start_next(self, last_import: MutationImport, gemeente: str) -> Tuple[ImportMode, Afgifte, datetime.date]:
-        date, _ = self._date_gemeente_from_filename(last_import.filename)
+        date = Afgifte(Bestandsnaam=last_import.filename).get_date()
         next_date = date + datetime.timedelta(days=1)
 
         if next_date.day == self.FULL_IMPORT_DAY:
@@ -148,11 +156,8 @@ class BagExtractMutationsHandler:
             end_date=date,
             artikelnummer=ArtikelNummer.MUT_MAAND_GEM,
         )
-        afgiftes = [Afgifte(**parser.node_to_dict(node)) for node in parser.findall('*//{*}BestandAfgiftes')]
-
-        for afg in afgiftes:
-            if self._date_gemeente_from_filename(afg.Bestandsnaam)[1] != gemeente:
-                del afg
+        afgiftes = [Afgifte(**parser.node_to_dict(node)) for node in parser.findall('*//{*}BestandAfgiftes') if node]
+        afgiftes = [afg for afg in afgiftes if afg.get_gemeente() == gemeente]
 
         if not afgiftes:
             # TODO: This implies when file is not yet availble on the 15th we are failing this workflow!
@@ -160,20 +165,20 @@ class BagExtractMutationsHandler:
 
         return ImportMode.FULL, afgiftes[0]
 
-    def get_mutations(self, date: datetime.date) -> Tuple[ImportMode, Afgifte]:
+    def get_mutations(self, date: datetime.date) -> tuple[ImportMode, Afgifte]:
         parser = BagSoapParser(
             start_date=(date - datetime.timedelta(days=1)),
             end_date=date,
             artikelnummer=ArtikelNummer.MUT_DAG_NLD,
         )
-        afgiftes = [Afgifte(**parser.node_to_dict(node)) for node in parser.findall('*//{*}BestandAfgiftes')]
+        afgiftes = [Afgifte(**parser.node_to_dict(node)) for node in parser.findall('*//{*}BestandAfgiftes') if node]
 
         if not afgiftes:
             raise NothingToDo.file_not_available(self._mutations_filename(date))
 
         return ImportMode.MUTATIONS, afgiftes[0]
 
-    def handle_import(self, last_import: MutationImport, dataset: dict) -> Tuple[MutationImport, dict, datetime.date]:
+    def handle_import(self, last_import: MutationImport, dataset: dict) -> tuple[MutationImport, dict, datetime.date]:
         gemeente = self._get_gemeente(dataset)
 
         if not last_import:
@@ -195,11 +200,11 @@ class BagExtractMutationsHandler:
             # The BAGExtract Datastore needs the last full download location as well to determine the ID's to import
             _, last_full = self.get_full(self._last_full_import_date(date), gemeente)
             update_config = {
-                'download_location': KADASTER_PRODUCTSTORE_URL + '/' + afgifte.AfgifteID,
-                'last_full_download_location': KADASTER_PRODUCTSTORE_URL + '/' + last_full.AfgifteID
+                'download_location': afgifte.get_url(),
+                'last_full_download_location': last_full.get_url()
             }
         else:
-            update_config = {'download_location': KADASTER_PRODUCTSTORE_URL + '/' + afgifte.AfgifteID}
+            update_config = {'download_location': afgifte.get_url()}
 
         # Update read_config for importer
         dataset['source']['read_config'] |= update_config

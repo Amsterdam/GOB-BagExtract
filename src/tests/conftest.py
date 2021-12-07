@@ -66,6 +66,18 @@ def mock_request(app_dir: Path) -> str:
 
 
 @pytest.fixture
-def mock_response(app_dir: Path, requests_mock):
-    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response.xml'
+def mock_response_full(app_dir: Path, requests_mock):
+    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response_full.xml'
+    requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
+
+
+@pytest.fixture
+def mock_response_mutaties(app_dir: Path, requests_mock):
+    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response_mutaties.xml'
+    requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
+
+
+@pytest.fixture
+def mock_response_empty(app_dir: Path, requests_mock):
+    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response_empty.xml'
     requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
