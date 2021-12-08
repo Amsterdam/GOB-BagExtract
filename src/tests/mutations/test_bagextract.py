@@ -2,6 +2,7 @@ import copy
 import datetime
 from unittest.mock import MagicMock
 
+import pytest
 from freezegun import freeze_time
 
 from gobbagextract.config import KADASTER_PRODUCTSTORE_URL
@@ -9,58 +10,62 @@ from gobbagextract.mutations.bagextract import BagExtractMutationsHandler, Impor
     NothingToDo, Afgifte
 
 
-class TestBagExtractMutationsHandler:
+class TestBagExtractSoapInterface:
 
-    def test_last_full_import_date(self):
+    def test_get_mutaties(self, mock_response_mutaties):
+        handler = BagExtractMutationsHandler()
+        date = datetime.date(2021, 5, 8)
+        mode, afgifte = handler.get_daily_mutations(date)
+
+        expected = Afgifte(**{
+            'AfgifteID': '02b9b15c-3051-4af3-8714-9a3325bf69fa',
+            'Afgiftereferentie': 'BAGNLDM-08042021-08052021.zip',
+            'Bestandsnaam': 'BAGNLDM-08042021-08052021.zip',
+            'artikelnummer': '2532',
+            'DatumAanmelding': '2021-05-08T14:13:23.669+02:00',
+            'BeschikbaarTot': '2021-11-08T14:13:23+01:00'
+        })
+        assert mode.value == 'mutations' and afgifte == expected
+
+        # different date, result is empty
+        with pytest.raises(NothingToDo, match='BAGNLDM-06122021-07122021.zip'):
+            handler.get_daily_mutations(datetime.date(2021, 12, 7))
+
+    def test_get_full(self, mock_response_full):
+        handler = BagExtractMutationsHandler()
+        mode, afgifte = handler.get_full(datetime.date(2021, 5, 15), '0457')
+
+        expected = Afgifte(**{
+            'AfgifteID': '09ec66c1-ca01-4b5a-a2e6-7d90d62cb2b2',
+            'Afgiftereferentie': 'BAGGEM0457L-15052021.zip',
+            'Bestandsnaam': 'BAGGEM0457L-15052021.zip',
+            'artikelnummer': '2531',
+            'DatumAanmelding': '2021-05-08T13:54:08.656+02:00',
+            'BeschikbaarTot': '2021-11-08T13:53:51+01:00'
+        })
+        assert mode.value == 'full' and afgifte == expected
+
+        # different gemeente
+        with pytest.raises(NothingToDo, match='BAGGEM1234L-15052021.zip'):
+            handler.get_full(datetime.date(2021, 5, 15), gemeente='1234')
+
+        # different date
+        with pytest.raises(NothingToDo, match='BAGGEM0457L-15112021.zip'):
+            handler.get_full(datetime.date(2021, 12, 7), gemeente='0457')
+
+    def test_empty_response(self, mock_response_empty):
         handler = BagExtractMutationsHandler()
 
-        testcases = [
-            # (now, result)
-            ("2021-02-08", "2021-01-15"),
-            ("2021-02-01", "2021-01-15"),
-            ("2021-02-15", "2021-02-15"),
-            ("2021-02-27", "2021-02-15"),
-            ("2021-01-15", "2021-01-15"),
-            ("2021-01-14", "2020-12-15"),
-        ]
+        with pytest.raises(NothingToDo, match='BAGNLDM-06122021-07122021.zip'):
+            handler.get_daily_mutations(datetime.date(2021, 12, 7))
 
-        for now, result in testcases:
-            expected = handler._last_full_import_date(datetime.date.fromisoformat(now)).strftime("%Y-%m-%d")
-            assert result == expected
-
-    # def test_date_gemeente_from_filename(self):
-    #     testcases = [
-    #         ("BAGGEM0457L-15102020.zip", (datetime.date(year=2020, month=10, day=15), '0457')),
-    #         ("BAGGEM0000L-15102020.zip", (datetime.date(year=2020, month=10, day=15), '0000')),
-    #         ("BAGNLDM-10112020-11112020.zip", (datetime.date(year=2020, month=11, day=11), None)),
-    #         ("BAGNLDM-31012021-01022021.zip", (datetime.date(year=2021, month=2, day=1), None)),
-    #     ]
-    #
-    #     handler = BagExtractMutationsHandler()
-    #     for filename, expected_date in testcases:
-    #         self.assertEqual(expected_date, handler._date_gemeente_from_filename(filename))
-    #
-    #     with self.assertRaises(GOBException):
-    #         handler._date_gemeente_from_filename("Unparsable")
-
-    def test_datestr(self):
-        assert BagExtractMutationsHandler()._datestr(datetime.date(year=2020, month=2, day=7)) == "07022020"
+        with pytest.raises(NothingToDo, match='BAGGEM0457L-15112021.zip'):
+            handler.get_full(datetime.date(2021, 12, 7), '0457')
 
     @freeze_time("2021-02-10")
     def test_handle_import(self, mock_config, mock_response_empty):
-        # dataset = {
-        #     'source': {
-        #         'read_config': {
-        #             'gemeentes': [
-        #                 '0123',
-        #             ],
-        #         },
-        #         'application': 'THE APP',
-        #     },
-        #     'catalogue': 'THE CAT',
-        #     'entity': 'THE ENT',
-        # }
         handler = BagExtractMutationsHandler()
+
         handler.get_daily_mutations = MagicMock(
             side_effect=lambda x: (
                 ImportMode.MUTATIONS,
@@ -68,32 +73,32 @@ class TestBagExtractMutationsHandler:
         )
         handler.get_full = MagicMock(
             side_effect=lambda *args: (
-                ImportMode.MUTATIONS,
+                ImportMode.FULL,
                 Afgifte(Bestandsnaam=handler._full_filename(*args), AfgifteID='id_full'))
         )
 
         testcases = [
-            # (last_import, expected_next_mode, expected_next_filename)
+            # (last_import, expected_next_mode, expected_next_filename, expected_full_location)
             (
                 MutationImport(mode=ImportMode.MUTATIONS.value, filename='BAGNLDM-30012021-31012021.zip'),
                 ImportMode.MUTATIONS,
                 'BAGNLDM-31012021-01022021.zip',
-                'BAGGEM0123L-15012021.zip'
+                'id_full'
             ),
             (
                 MutationImport(mode=ImportMode.FULL.value, filename='BAGGEM0123L-15012021.zip'),
                 ImportMode.MUTATIONS,
                 'BAGNLDM-15012021-16012021.zip',
-                'BAGGEM0123L-15012021.zip'
+                'id_full'
             ),
             (
                 MutationImport(mode=ImportMode.MUTATIONS.value, filename='BAGNLDM-13012021-14012021.zip'),
                 ImportMode.FULL,
-                'BAGGEM0123L-15012021.zip',
+                'BAGGEM0457L-15012021.zip',
                 None
             ),
             (
-                None, ImportMode.FULL, 'BAGGEM0123L-15012021.zip', None
+                None, ImportMode.FULL, 'BAGGEM0457L-15012021.zip', None
             )
         ]
 
@@ -116,9 +121,9 @@ class TestBagExtractMutationsHandler:
             assert expected_fname == next_import.filename
 
             if expected_mode == ImportMode.FULL:
-                expected_download_loc = f'{KADASTER_PRODUCTSTORE_URL}/{expected_fname}'
+                expected_download_loc = f'{KADASTER_PRODUCTSTORE_URL}/id_full'
             else:
-                expected_download_loc = f'{KADASTER_PRODUCTSTORE_URL}/{expected_fname}'
+                expected_download_loc = f'{KADASTER_PRODUCTSTORE_URL}/id_mut'
 
             expected_new_dataset = {
                 'version': '0.1',
@@ -144,25 +149,16 @@ class TestBagExtractMutationsHandler:
 
             assert expected_new_dataset == new_dataset
 
-        # Test Exception for when not available
-        handler._get_available_mutation_downloads = lambda: []
-        handler._get_available_full_downloads = lambda x: []
-
-        for last_import, _, expected_fname, _ in testcases:
-            with self.assertRaisesRegex(NothingToDo, f"File {expected_fname} not yet available for download"):
-                handler.handle_import(last_import, copy.deepcopy(dataset))
-
     def test_have_next(self, mock_config):
         handler = BagExtractMutationsHandler()
 
-        # handler.start_next = MagicMock()
+        handler.start_next = MagicMock()
         mutation_import = MutationImport()
 
         # Have next
         assert handler.have_next(mutation_import, mock_config) is True
-
-        handler.start_next.assert_called_with(mutation_import, '0123')
+        handler.start_next.assert_called_with(mutation_import, '0457')
 
         # Don't have next
         handler.start_next.side_effect = NothingToDo
-        self.assertFalse(handler.have_next(mutation_import, dataset))
+        assert handler.have_next(mutation_import, mock_config) is False
