@@ -1,12 +1,14 @@
 import datetime
 import re
 import xml.etree.ElementTree as ET
-from typing import Tuple, NamedTuple, Optional
+from typing import Tuple, NamedTuple, Optional, Iterator
 
 import requests
 from dateutil.relativedelta import relativedelta
 
-from gobbagextract.config import KADASTER_PRODUCTSTORE_URL, ArtikelNummer
+import json
+from gobbagextract.config import KADASTER_PRODUCTSTORE_URL, ArtikelNummer, KADASTER_PRODUCTSTORE_CERT, \
+    KADASTER_PRODUCTSTORE_KEY
 from gobbagextract.database.model import MutationImport
 from gobbagextract.mutations.exception import NothingToDo
 from gobcore.enum import ImportMode
@@ -23,6 +25,7 @@ class Afgifte(NamedTuple):
     artikelnummer: str = None
     DatumAanmelding: str = None
     BeschikbaarTot: str = None
+    Bestandsgrootte: str = None
 
     def get_url(self):
         return KADASTER_PRODUCTSTORE_URL + '/' + self.AfgifteID
@@ -41,6 +44,9 @@ class Afgifte(NamedTuple):
             return None
         raise GOBException(f"Could not parse filename. Unknown format: {self.Bestandsnaam}")
 
+    def to_json(self):
+        return json.dumps(self._asdict())
+
 
 class BagSoapParser:
 
@@ -50,10 +56,7 @@ class BagSoapParser:
         <soapenv:Header/>
         <soapenv:Body>
             <v20:BestandenlijstOpvragenRequest>
-                <v20:Periode>
-                    <v20:DatumTijdVanaf>{start}</v20:DatumTijdVanaf>
-                    <v20:DatumTijdTotEnMet>{eind}</v20:DatumTijdTotEnMet>
-                </v20:Periode>
+                {period}
                 <v20:Artikelnummers>{artikelnummer}</v20:Artikelnummers>
             </v20:BestandenlijstOpvragenRequest>
         </soapenv:Body>
@@ -68,7 +71,12 @@ class BagSoapParser:
         'ns3': 'http://www.kadaster.nl/schemas/gds2/make2stock/v20201201'
     }
 
-    def __init__(self, artikelnummer: ArtikelNummer, start_date: datetime.date, end_date: datetime.date):
+    def __init__(
+            self,
+            artikelnummer: ArtikelNummer,
+            start_date: datetime.date = None,
+            end_date: datetime.date = None
+    ):
         self.url = KADASTER_PRODUCTSTORE_URL
         self.start_date = start_date
         self.end_date = end_date
@@ -77,14 +85,28 @@ class BagSoapParser:
         self.tree = ET.fromstring(self._from_url())
 
     def _format_template(self):
-        return self.MUT_REQUEST_TEMPLATE.format(
-            start=self.start_date.isoformat(),
-            eind=self.end_date.isoformat(),
-            artikelnummer=self.artikelnummer
-        ).strip()
+        period = ""
+        if self.start_date or self.end_date:
+            period = "<v20:Periode>"
+            if self.start_date:
+                start = self._to_datetime(self.start_date).isoformat()
+                period += f"\n<v20:DatumTijdVanaf>{start}</v20:DatumTijdVanaf>\n"
+            if self.end_date:
+                end = self._to_datetime(self.end_date, day_end=True).isoformat()
+                period += f"<v20:DatumTijdTotEnMet>{end}</v20:DatumTijdTotEnMet>\n"
+            period += "</v20:Periode>"
+
+        return self.MUT_REQUEST_TEMPLATE.format(period=period, artikelnummer=self.artikelnummer.value).strip()
+
+    @staticmethod
+    def _to_datetime(date: datetime.date, day_end: bool = False) -> datetime.datetime:
+        time = datetime.time(23, 59, 59) if day_end else datetime.time(0, 0, 0)
+        return datetime.datetime.combine(date, time)
 
     def _from_url(self):
-        response = requests.post(url=self.url, data=self._format_template())
+        cert = (KADASTER_PRODUCTSTORE_CERT, KADASTER_PRODUCTSTORE_KEY)
+        data = self._format_template()
+        response = requests.post(url=self.url, data=data, cert=cert)
         response.raise_for_status()
         return response.text
 
@@ -127,7 +149,12 @@ class BagExtractMutationsHandler:
         read_config = dataset.get('source', {}).get('read_config', {})
         return read_config.get('gemeentes')[0]
 
-    def restart_import(self, last_import: MutationImport) -> Tuple[ImportMode, Afgifte, datetime.date]:
+    def _to_afgifte(self, parser) -> Iterator[Afgifte]:
+        for node in parser.findall('*//{*}BestandAfgiftes'):
+            if node:
+                yield Afgifte(**parser.node_to_dict(node))
+
+    def restart_import(self, last_import: MutationImport) -> tuple[ImportMode, Afgifte, datetime.date]:
         mode = last_import.mode
         afgifte = Afgifte(Bestandsnaam=last_import.filename)
         date, gemeente = afgifte.get_date(), afgifte.get_gemeente()
@@ -135,29 +162,32 @@ class BagExtractMutationsHandler:
         if mode == ImportMode.FULL.value:
             ret = self.get_full(date, gemeente)
         else:
-            ret = self.get_mutations(date)
+            ret = self.get_daily_mutations(date)
 
         return ret + (date,)
 
-    def start_next(self, last_import: MutationImport, gemeente: str) -> Tuple[ImportMode, Afgifte, datetime.date]:
+    def start_next(self, last_import: MutationImport, gemeente: str) -> tuple[ImportMode, Afgifte, datetime.date]:
         date = Afgifte(Bestandsnaam=last_import.filename).get_date()
         next_date = date + datetime.timedelta(days=1)
 
         if next_date.day == self.FULL_IMPORT_DAY:
             ret = self.get_full(next_date, gemeente)
         else:
-            ret = self.get_mutations(next_date)
+            ret = self.get_daily_mutations(next_date)
 
         return ret + (next_date,)
 
     def get_full(self, date: datetime.date, gemeente: str) -> Tuple[ImportMode, Afgifte]:
+        date = self._last_full_import_date(date)
+
         parser = BagSoapParser(
-            start_date=(date - datetime.timedelta(days=1)),
+            start_date=(date - relativedelta(month=1)),
             end_date=date,
-            artikelnummer=ArtikelNummer.MUT_MAAND_GEM,
+            artikelnummer=ArtikelNummer.VOL_GEM,
         )
-        afgiftes = [Afgifte(**parser.node_to_dict(node)) for node in parser.findall('*//{*}BestandAfgiftes') if node]
-        afgiftes = [afg for afg in afgiftes if afg.get_gemeente() == gemeente]
+        afgiftes = [
+            afg for afg in self._to_afgifte(parser) if afg.get_gemeente() == gemeente and afg.get_date() == date
+        ]
 
         if not afgiftes:
             # TODO: This implies when file is not yet availble on the 15th we are failing this workflow!
@@ -165,13 +195,13 @@ class BagExtractMutationsHandler:
 
         return ImportMode.FULL, afgiftes[0]
 
-    def get_mutations(self, date: datetime.date) -> tuple[ImportMode, Afgifte]:
+    def get_daily_mutations(self, date: datetime.date) -> tuple[ImportMode, Afgifte]:
         parser = BagSoapParser(
             start_date=(date - datetime.timedelta(days=1)),
             end_date=date,
             artikelnummer=ArtikelNummer.MUT_DAG_NLD,
         )
-        afgiftes = [Afgifte(**parser.node_to_dict(node)) for node in parser.findall('*//{*}BestandAfgiftes') if node]
+        afgiftes = [afg for afg in self._to_afgifte(parser) if afg.get_date() == date]
 
         if not afgiftes:
             raise NothingToDo.file_not_available(self._mutations_filename(date))
@@ -198,7 +228,7 @@ class BagExtractMutationsHandler:
 
         if mode == ImportMode.MUTATIONS:
             # The BAGExtract Datastore needs the last full download location as well to determine the ID's to import
-            _, last_full = self.get_full(self._last_full_import_date(date), gemeente)
+            _, last_full = self.get_full(date, gemeente)
             update_config = {
                 'download_location': afgifte.get_url(),
                 'last_full_download_location': last_full.get_url()

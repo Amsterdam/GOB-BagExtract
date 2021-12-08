@@ -12,6 +12,7 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker, Session
 
+import json
 from gobbagextract.config import DATABASE_CONFIG, KADASTER_PRODUCTSTORE_URL
 from gobbagextract.database import connection
 from gobbagextract.database.model import Base
@@ -38,8 +39,15 @@ def set_bag_data_config(tests_dir: Path) -> Generator[None, None, None]:
     """
     extract_config.data_set_locations_mapping_cache = None
     os.environ["BAG_DATA_CONFIG"] = str(tests_dir / "fixtures" / "bag_data")
-    yield
-    extract_config.data_set_locations_mapping_cache = None
+    try:
+        yield
+    finally:
+        extract_config.data_set_locations_mapping_cache = None
+
+
+@pytest.fixture
+def mock_config() -> dict:
+    return json.loads(Path(os.environ['BAG_DATA_CONFIG'], 'bag.test.json').read_text())
 
 
 @pytest.fixture
@@ -98,24 +106,24 @@ def gob_logger_mock() -> Generator[MagicMock, None, None]:
 
 
 @pytest.fixture
-def mock_request(app_dir: Path) -> str:
-    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'request.xml'
+def mock_kadaster_request(tests_dir) -> str:
+    xml = tests_dir / 'fixtures' / 'xml' / 'request.xml'
     return xml.read_text()
 
 
 @pytest.fixture
-def mock_response_full(app_dir: Path, requests_mock):
-    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response_full.xml'
+def mock_response_full(tests_dir, requests_mock):
+    xml = tests_dir / 'fixtures' / 'xml' / 'response_full.xml'
     requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
 
 
 @pytest.fixture
-def mock_response_mutaties(app_dir: Path, requests_mock):
-    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response_mutaties.xml'
+def mock_response_mutaties(tests_dir, requests_mock):
+    xml = tests_dir / 'fixtures' / 'xml' / 'response_mutaties.xml'
     requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
 
 
 @pytest.fixture
-def mock_response_empty(app_dir: Path, requests_mock):
-    xml = app_dir / 'tests' / 'fixtures' / 'xml' / 'response_empty.xml'
+def mock_response_empty(tests_dir, requests_mock):
+    xml = tests_dir / 'fixtures' / 'xml' / 'response_empty.xml'
     requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
