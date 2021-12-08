@@ -51,10 +51,12 @@ def mock_config() -> dict:
 
 
 @pytest.fixture
-def reset_db() -> None:
-    """Drop test database and recreate it to ensure the database is empty."""
+def recreate_database() -> str:
+    """Drop test database and recreate it to ensure the database is empty.
+
+    :returns: de test database name it created.
+    """
     test_db_name = f"test_{DATABASE_CONFIG['database']}"
-    DATABASE_CONFIG['database'] = test_db_name
     tmp_config = DATABASE_CONFIG.copy()
     # Cannot drop the currently open database, so do not open it.
     tmp_config.pop("database")
@@ -65,16 +67,19 @@ def reset_db() -> None:
         conn.execute("commit")
         conn.execute(f"CREATE DATABASE {test_db_name}")
         conn.execute("commit")
+    return test_db_name
 
 
 @pytest.fixture
-def database(app_dir: Path, reset_db: None) -> Generator[Session, None, None]:
+def database(app_dir: Path, recreate_database) -> Generator[Session, None, None]:
     """Fixture which sets up the database, returns a db session.
 
     :param app_dir: path to current application source.
-    :param reset_db: fixture which resets the test database.
+    :param recreate_database: fixture which resets the test database.
     :return: a generator which yields a db session.
     """
+    test_db_name = recreate_database
+    DATABASE_CONFIG['database'] = test_db_name
     engine: Engine = create_engine(URL(**DATABASE_CONFIG), echo=True)
     session_factory = sessionmaker(bind=engine)
     session: Session = session_factory()
