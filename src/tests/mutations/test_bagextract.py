@@ -5,14 +5,14 @@ from unittest.mock import MagicMock
 import pytest
 from freezegun import freeze_time
 
-from gobbagextract.config import KADASTER_PRODUCTSTORE_URL
 from gobbagextract.mutations.bagextract import BagExtractMutationsHandler, ImportMode, MutationImport, \
     NothingToDo, Afgifte
+from gobcore.exceptions import GOBException
 
 
 class TestBagExtractSoapInterface:
 
-    def test_get_mutaties(self, mock_response_mutaties):
+    def test_get_mutaties(self, mock_response_mutaties, monkeypatch):
         handler = BagExtractMutationsHandler()
         date = datetime.date(2021, 5, 8)
         mode, afgifte = handler.get_daily_mutations(date)
@@ -121,9 +121,9 @@ class TestBagExtractSoapInterface:
             assert expected_fname == next_import.filename
 
             if expected_mode == ImportMode.FULL:
-                expected_download_loc = f'{KADASTER_PRODUCTSTORE_URL}/id_full'
+                expected_download_loc = 'id_full'
             else:
-                expected_download_loc = f'{KADASTER_PRODUCTSTORE_URL}/id_mut'
+                expected_download_loc = 'id_mut'
 
             expected_new_dataset = {
                 'version': '0.1',
@@ -144,8 +144,7 @@ class TestBagExtractSoapInterface:
                 }
             }
             if expected_full_location:
-                expected_new_dataset['source']['read_config']['last_full_download_location'] = \
-                    f'{KADASTER_PRODUCTSTORE_URL}/{expected_full_location}'
+                expected_new_dataset['source']['read_config']['last_full_download_location'] = expected_full_location
 
             assert expected_new_dataset == new_dataset
 
@@ -162,3 +161,14 @@ class TestBagExtractSoapInterface:
         # Don't have next
         handler.start_next.side_effect = NothingToDo
         assert handler.have_next(mutation_import, mock_config) is False
+
+    def test_response_date_error(self, mock_response_error):
+        handler = BagExtractMutationsHandler()
+
+        # raises in Afgifte.get_date()
+        with pytest.raises(GOBException, match='Unknown format: FAKE_FILENAME.zip'):
+            handler.get_daily_mutations(datetime.date(2021, 12, 7))
+
+        # raises in Afgifte.get_gemeente()
+        with pytest.raises(GOBException, match='Unknown format: FAKE_FILENAME.zip'):
+            handler.get_full(datetime.date(2021, 12, 7), '1234')

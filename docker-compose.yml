@@ -12,7 +12,7 @@ services:
       SECURE_PASSWORD: insecure
       GOB_BAGEXTRACT_DATABASE_HOST: bagextract_database
       GOB_BAGEXTRACT_DATABASE_PORT: 5432
-    env_file: .env
+#    env_file: .env
     volumes:
       - gob-volume:/app/shared
     depends_on:

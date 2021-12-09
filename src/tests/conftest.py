@@ -13,7 +13,7 @@ from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker, Session
 
 import json
-from gobbagextract.config import DATABASE_CONFIG, KADASTER_PRODUCTSTORE_URL
+from gobbagextract.config import DATABASE_CONFIG, KADASTER_PRODUCTSTORE_AFGIFTE_URL
 from gobbagextract.database import connection
 from gobbagextract.database.model import Base
 from gobbagextract.extract_config import extract_config
@@ -119,16 +119,22 @@ def mock_kadaster_request(tests_dir) -> str:
 @pytest.fixture
 def mock_response_full(tests_dir, requests_mock):
     xml = tests_dir / 'fixtures' / 'xml' / 'response_full.xml'
-    requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
+    requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
 
 
 @pytest.fixture
 def mock_response_mutaties(tests_dir, requests_mock):
     xml = tests_dir / 'fixtures' / 'xml' / 'response_mutaties.xml'
-    requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
+    requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
 
 
 @pytest.fixture
 def mock_response_empty(tests_dir, requests_mock):
     xml = tests_dir / 'fixtures' / 'xml' / 'response_empty.xml'
-    requests_mock.post(KADASTER_PRODUCTSTORE_URL, text=xml.read_text())
+    requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
+
+
+@pytest.fixture
+def mock_response_error(tests_dir, requests_mock):
+    xml = tests_dir / 'fixtures' / 'xml' / 'response_error.xml'
+    requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
