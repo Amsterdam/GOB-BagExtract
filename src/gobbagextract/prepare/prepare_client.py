@@ -1,4 +1,4 @@
-from datetime import datetime
+import datetime as dt
 
 from gobcore.enum import ImportMode
 from gobcore.logging.logger import logger
@@ -10,6 +10,21 @@ from gobbagextract.selector.datastore_to_postgres import DatastoreToPostgresSele
 from gobbagextract.datastore.bag_extract import BagExtractDatastore
 
 
+def connect(func):
+    def wrapper(*args, **kwargs):
+        self = args[0]
+        try:
+            if self._data_src:
+                self._data_src.connect()
+            self._data_dst.connect()
+
+            return func(self, *args[1:], **kwargs)
+        finally:
+            self.disconnect()
+
+    return wrapper
+
+
 class PrepareClient:
     columns_def = [
             {'name': 'object_id', 'type': 'string'},
@@ -18,18 +33,21 @@ class PrepareClient:
             {'name': 'object', 'type': 'JSON'},
     ]
 
-    def __init__(self, msg: dict, dataset, mode: ImportMode, last_date: datetime):
-        self.dataset = dataset
+    def __init__(self, msg: dict, dataset, mode: ImportMode, last_date: dt.date):
         self.header = msg.get('header', {})
-        self._laste_date = last_date
+        self.dataset = dataset
         self.entity = dataset['entity']
+        self.source_app = self.dataset.get('source', {}).get('application')
+        self._last_date = last_date
+
         read_config = dataset.get('source', {}).get('read_config', {})
         read_config['mode'] = mode
         self._data_src = BagExtractDatastore(dict(), read_config, last_date)
+
         data_store_config = DATABASE_CONFIG | {'type': TYPE_POSTGRES}
         data_store_config.pop('drivername')
         self._data_dst = PostgresDatastoreExt(data_store_config)
-        self.source_app = self.dataset.get('source', {}).get('application')
+
         self._config = {
             'destination_table': {
                 'name': '_'.join((dataset['catalogue'], dataset['entity'])),
@@ -41,63 +59,41 @@ class PrepareClient:
             'gemeente': read_config.get('gemeente'),
         }
 
-    def connect(self):
-        if self._data_src:
-            self._data_src.connect()
-        self._data_dst.connect()
-
     def disconnect(self):
-        """Closes open database connections
-
-        :return:
-        """
+        """Closes open database connections."""
         if self._data_src:
             self._data_src.disconnect()
         self._data_dst.disconnect()
         self._data_src = None
         self._data_dst = None
 
-    def import_dataset(self) -> int:
-        '''
-           Return total number of imported elements
-        '''
-
-        self.connect()
+    @connect
+    def import_dataset(self) -> dict:
+        """Returns result message containing total number of imported elements."""
         selector = DatastoreToPostgresSelector(self._data_src, self._data_dst, self._config)
         nr_rows = selector.select()
-        ret = self.get_result_msg(nr_rows)
-        self.disconnect()
-        return ret
+        return self.get_result_msg(nr_rows)
 
-    def get_result_msg(self, nr_rows):
+    def get_result_msg(self, nr_rows: int) -> dict:
         """The result of the bag extract needs to be published.
 
         Publication includes a header, summary and results
         The header is for identification purposes
-        The summary is for the interpretation of the results. Was the import successful, what er the metrics, etc
+        The summary is for the interpretation of the results. (Success, metrics)
         The results is the imported data in GOB format
-
-        :return:
         """
         header = {
             **self.header,
             "version": self.dataset['version'],
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": dt.datetime.utcnow().isoformat()
         }
-
-        summary = {
-            'num_records': nr_rows
-        }
+        summary = {'num_records': nr_rows}
 
         # Log end of import process
-        logger.info(f"Bag extract dataset {self.entity} from {self.source_app} completed. "
-                    f"{summary['num_records']} records were read from the source.",
-                    kwargs={"data": summary})
+        logger.info(
+            f"Bag extract dataset {self.entity} from {self.source_app} completed. "
+            f"{summary['num_records']:,} records were read from the source.",
+            kwargs={"data": summary}
+        )
 
-        summary.update(logger.get_summary())
-
-        import_message = {
-            "header": header,
-            "summary": summary,
-        }
-        return import_message
+        return {"header": header, "summary": summary | logger.get_summary()}

@@ -1,4 +1,5 @@
 import os
+import re
 from enum import Enum
 
 
@@ -29,3 +30,6 @@ KADASTER_PRODUCTSTORE_DOWNLOAD_URL = os.getenv('KADASTER_PRODUCTSTORE_DOWNLOAD_U
 
 KADASTER_PRODUCTSTORE_CERT = os.getenv('KADASTER_PRODUCTSTORE_CERT')
 KADASTER_PRODUCTSTORE_KEY = os.getenv('KADASTER_PRODUCTSTORE_KEY')
+
+RX_GEMEENTE_DATE = re.compile(r"^BAGGEM(\d{4})L-(\d{2})(\d{2})(\d{4}).zip$")
+RX_DATE = re.compile(r"^BAGNLDM-\d{8}-(\d{2})(\d{2})(\d{4}).zip$")

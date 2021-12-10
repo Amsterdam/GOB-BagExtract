@@ -165,10 +165,8 @@ class TestBagExtractSoapInterface:
     def test_response_date_error(self, mock_response_error):
         handler = BagExtractMutationsHandler()
 
-        # raises in Afgifte.get_date()
-        with pytest.raises(GOBException, match='Unknown format: FAKE_FILENAME.zip'):
+        with pytest.raises(GOBException, match="Unknown format: 'FAKE_FILENAME.zip'"):
             handler.get_daily_mutations(datetime.date(2021, 12, 7))
 
-        # raises in Afgifte.get_gemeente()
-        with pytest.raises(GOBException, match='Unknown format: FAKE_FILENAME.zip'):
+        with pytest.raises(GOBException, match="Unknown format: 'FAKE_FILENAME.zip'"):
             handler.get_full(datetime.date(2021, 12, 7), '1234')

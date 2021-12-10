@@ -1,4 +1,4 @@
-import datetime
+import datetime as dt
 from typing import Tuple
 
 from dateutil.relativedelta import relativedelta
@@ -9,11 +9,15 @@ from gobbagextract.mutations.afgifte import Afgifte
 from gobbagextract.mutations.exception import NothingToDo
 from gobcore.enum import ImportMode
 from gobbagextract.mutations.soap import BagSoapHandler
+from gobcore.logging.logger import logger
 
 
 class BagExtractMutationsHandler:
     # Full import every 15th of the month
     FULL_IMPORT_DAY = 15
+
+    # Number of periods to lookback for inital import
+    INITIAL_IMPORT_RETRY = 5
 
     SoapHandler = BagSoapHandler
 
@@ -23,21 +27,21 @@ class BagExtractMutationsHandler:
         return read_config.get('gemeentes')[0]
 
     @staticmethod
-    def _datestr(date: datetime.date) -> str:
+    def _datestr(date: dt.date) -> str:
         return date.strftime("%d%m%Y")
 
-    def _full_filename(self, date: datetime.date, gemeente: str) -> str:
+    def _full_filename(self, date: dt.date, gemeente: str) -> str:
         return f"BAGGEM{gemeente}L-{self._datestr(date)}.zip"
 
-    def _mutations_filename(self, date: datetime.date) -> str:
-        return f"BAGNLDM-{self._datestr(date - datetime.timedelta(days=1))}-{self._datestr(date)}.zip"
+    def _mutations_filename(self, date: dt.date) -> str:
+        return f"BAGNLDM-{self._datestr(date - dt.timedelta(days=1))}-{self._datestr(date)}.zip"
 
-    def _last_full_import_date(self, date: datetime.date):
+    def _last_full_import_date(self, date: dt.date):
         if date.day < self.FULL_IMPORT_DAY:
             date -= relativedelta(months=1)
         return date.replace(day=self.FULL_IMPORT_DAY)
 
-    def restart_import(self, last_import: MutationImport) -> tuple[ImportMode, Afgifte, datetime.date]:
+    def restart_import(self, last_import: MutationImport) -> tuple[ImportMode, Afgifte, dt.date]:
         mode = last_import.mode
         afgifte = Afgifte(Bestandsnaam=last_import.filename)
         date, gemeente = afgifte.get_date(), afgifte.get_gemeente()
@@ -49,18 +53,18 @@ class BagExtractMutationsHandler:
 
         return ret + (date,)
 
-    def start_next(self, last_import: MutationImport, gemeente: str) -> tuple[ImportMode, Afgifte, datetime.date]:
+    def start_next(self, last_import: MutationImport, gemeente: str) -> tuple[ImportMode, Afgifte, dt.date]:
         date = Afgifte(Bestandsnaam=last_import.filename).get_date()
-        next_date = date + datetime.timedelta(days=1)
+        next_date = date + dt.timedelta(days=1)
 
         if next_date.day == self.FULL_IMPORT_DAY:
             ret = self.get_full(next_date, gemeente)
         else:
             ret = self.get_daily_mutations(next_date)
 
-        return ret + (next_date,)
+        return ret + (next_date, )
 
-    def get_full(self, date: datetime.date, gemeente: str) -> Tuple[ImportMode, Afgifte]:
+    def get_full(self, date: dt.date, gemeente: str) -> Tuple[ImportMode, Afgifte]:
         date = self._last_full_import_date(date)
 
         kwargs = {
@@ -76,9 +80,9 @@ class BagExtractMutationsHandler:
         # TODO: This implies when file is not yet availble on the 15th we are failing this workflow!
         raise NothingToDo.file_not_available(self._full_filename(date, gemeente))
 
-    def get_daily_mutations(self, date: datetime.date) -> tuple[ImportMode, Afgifte]:
+    def get_daily_mutations(self, date: dt.date) -> tuple[ImportMode, Afgifte]:
         kwargs = {
-            'start_date': (date - datetime.timedelta(days=1)),
+            'start_date': (date - dt.timedelta(days=1)),
             'end_date': date,
             'artikelnummer': ArtikelNummer.MUT_DAG_NLD
         }
@@ -89,12 +93,23 @@ class BagExtractMutationsHandler:
 
         raise NothingToDo.file_not_available(self._mutations_filename(date))
 
-    def handle_import(self, last_import: MutationImport, dataset: dict) -> tuple[MutationImport, dict, datetime.date]:
+    def initial_import(self, date: dt.date, gemeente: str) -> tuple[ImportMode, Afgifte, dt.date]:
+        date = self._last_full_import_date(date)
+
+        for retry in range(self.INITIAL_IMPORT_RETRY):
+            try:
+                return self.get_full(date, gemeente) + (date,)
+            except NothingToDo:
+                logger.warning(f"Retrying previous initial import for: {gemeente} / {date}")
+                date = self._last_full_import_date(date - dt.timedelta(days=1))
+
+        raise NothingToDo(f"No initial import found for {self.INITIAL_IMPORT_RETRY} periods.")
+
+    def handle_import(self, last_import: MutationImport, dataset: dict) -> tuple[MutationImport, dict, dt.date]:
         gemeente = self._get_gemeente(dataset)
 
         if not last_import:
-            date = self._last_full_import_date(datetime.date.today())
-            mode, afgifte = self.get_full(date, gemeente)
+            mode, afgifte, date = self.initial_import(dt.date.today(), gemeente)
         elif not last_import.is_ended():
             mode, afgifte, date = self.restart_import(last_import)
         else:
@@ -107,12 +122,11 @@ class BagExtractMutationsHandler:
         mutation_import.mode = mode.value
         mutation_import.filename = afgifte.Bestandsnaam
 
-        update_config = {'download_location': afgifte.AfgifteID}
+        update_config = {'download_location': afgifte}
 
         if mode == ImportMode.MUTATIONS:
             # The BAGExtract Datastore needs the last full download location as well to determine the ID's to import
-            _, last_full = self.get_full(date, gemeente)
-            update_config['last_full_download_location'] = last_full.AfgifteID
+            update_config['last_full_download_location'] = self.get_full(date, gemeente)[1]
 
         # Update read_config for importer
         dataset['source']['read_config'] |= update_config
