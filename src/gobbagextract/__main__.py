@@ -48,7 +48,6 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
-            print(e)
             _log_no_more_left(last_import)
             msg = {
                 'header': msg.get('header', {}),

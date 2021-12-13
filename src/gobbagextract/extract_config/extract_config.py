@@ -23,7 +23,7 @@ def get_extract_definition(
 
 def _build_data_set_locations_mapping():
     global data_set_locations_mapping_cache
-    DATA_DIR = os.environ.get(
+    data_dir = os.environ.get(
         "BAG_DATA_CONFIG",
         os.path.join(os.path.dirname(__file__), '..', 'data')
     )
@@ -34,7 +34,7 @@ def _build_data_set_locations_mapping():
         return defaultdict(nested_dict)
 
     mapping = nested_dict()
-    definitions = [(json.load(open(f)), f) for f in glob.glob(os.path.join(DATA_DIR, '*.json'))]
+    definitions = [(json.load(open(f)), f) for f in glob.glob(os.path.join(data_dir, '*.json'))]
     for j, f in definitions:
         d = json.load(open(f))
         collection = d['entity']

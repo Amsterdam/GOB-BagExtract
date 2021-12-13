@@ -1,7 +1,7 @@
 {
   "version": "0.1",
-  "catalogue": "bag_test",
-  "entity": "ligplaatsen_test",
+  "catalogue": "bag",
+  "entity": "ligplaatsen",
   "source": {
     "name": "Kadaster",
     "application": "BAGExtract",

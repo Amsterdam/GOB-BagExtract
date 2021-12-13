@@ -1,8 +1,7 @@
+import json
 import os
 from pathlib import Path
 from typing import Generator
-from unittest import mock
-from unittest.mock import MagicMock
 
 import pytest
 from alembic.command import upgrade as alembic_upgrade
@@ -12,7 +11,6 @@ from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.url import URL
 from sqlalchemy.orm import sessionmaker, Session
 
-import json
 from gobbagextract.config import DATABASE_CONFIG, KADASTER_PRODUCTSTORE_AFGIFTE_URL
 from gobbagextract.database import connection
 from gobbagextract.database.model import Base
@@ -97,17 +95,6 @@ def database(app_dir: Path, recreate_database) -> Generator[Session, None, None]
         yield session
     finally:
         engine.dispose()
-
-
-@pytest.fixture
-def gob_logger_mock() -> Generator[MagicMock, None, None]:
-    """Mock GOB logger.
-
-    GOB logger cannot be overwritten with logging.setLoggerClass as it is not compatible with that.
-    :return: A generator which yields the mocked logger.
-    """
-    with mock.patch("gobbagextract.__main__.logger") as p:
-        yield p
 
 
 @pytest.fixture
