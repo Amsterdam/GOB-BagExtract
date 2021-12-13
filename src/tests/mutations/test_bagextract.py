@@ -2,6 +2,7 @@ import copy
 import datetime
 from unittest.mock import MagicMock
 
+import freezegun
 import pytest
 from freezegun import freeze_time
 
@@ -14,13 +15,13 @@ class TestBagExtractSoapInterface:
 
     def test_get_mutaties(self, mock_response_mutaties, monkeypatch):
         handler = BagExtractMutationsHandler()
-        date = datetime.date(2021, 5, 8)
+        date = datetime.date(2021, 11, 14)
         mode, afgifte = handler.get_daily_mutations(date)
 
         expected = Afgifte(**{
             'AfgifteID': '02b9b15c-3051-4af3-8714-9a3325bf69fa',
-            'Afgiftereferentie': 'BAGNLDM-08042021-08052021.zip',
-            'Bestandsnaam': 'BAGNLDM-08042021-08052021.zip',
+            'Afgiftereferentie': 'BAGNLDM-13112021-14112021.zip',
+            'Bestandsnaam': 'BAGNLDM-13112021-14112021.zip',
             'artikelnummer': '2532',
             'DatumAanmelding': '2021-05-08T14:13:23.669+02:00',
             'BeschikbaarTot': '2021-11-08T14:13:23+01:00'
@@ -33,12 +34,12 @@ class TestBagExtractSoapInterface:
 
     def test_get_full(self, mock_response_full):
         handler = BagExtractMutationsHandler()
-        mode, afgifte = handler.get_full(datetime.date(2021, 5, 15), '0457')
+        mode, afgifte = handler.get_full(datetime.date(2021, 11, 14), '0457')
 
         expected = Afgifte(**{
             'AfgifteID': '09ec66c1-ca01-4b5a-a2e6-7d90d62cb2b2',
-            'Afgiftereferentie': 'BAGGEM0457L-15052021.zip',
-            'Bestandsnaam': 'BAGGEM0457L-15052021.zip',
+            'Afgiftereferentie': 'BAGGEM0457L-15102021.zip',
+            'Bestandsnaam': 'BAGGEM0457L-15102021.zip',
             'artikelnummer': '2531',
             'DatumAanmelding': '2021-05-08T13:54:08.656+02:00',
             'BeschikbaarTot': '2021-11-08T13:53:51+01:00'
@@ -83,13 +84,13 @@ class TestBagExtractSoapInterface:
                 MutationImport(mode=ImportMode.MUTATIONS.value, filename='BAGNLDM-30012021-31012021.zip'),
                 ImportMode.MUTATIONS,
                 'BAGNLDM-31012021-01022021.zip',
-                'id_full'
+                 Afgifte(AfgifteID='id_full', Bestandsnaam='BAGGEM0457L-01022021.zip')
             ),
             (
                 MutationImport(mode=ImportMode.FULL.value, filename='BAGGEM0123L-15012021.zip'),
                 ImportMode.MUTATIONS,
                 'BAGNLDM-15012021-16012021.zip',
-                'id_full'
+                Afgifte(AfgifteID='id_full', Bestandsnaam='BAGGEM0457L-01022021.zip')
             ),
             (
                 MutationImport(mode=ImportMode.MUTATIONS.value, filename='BAGNLDM-13012021-14012021.zip'),
@@ -102,7 +103,7 @@ class TestBagExtractSoapInterface:
             )
         ]
 
-        for last_import, expected_mode, expected_fname, expected_full_location in testcases:
+        for last_import, expected_mode, expected_fname, expected_full_location, expected_download_loc in testcases:
             if last_import:
                 # Not ended. Check only when last_import is not None. Uses restart_import
                 next_import, new_dataset, date = handler.handle_import(last_import, copy.deepcopy(mock_config))
@@ -127,8 +128,8 @@ class TestBagExtractSoapInterface:
 
             expected_new_dataset = {
                 'version': '0.1',
-                'catalogue': 'bag_test',
-                'entity': 'ligplaatsen_test',
+                'catalogue': 'bag',
+                'entity': 'ligplaatsen',
                 'source': {
                     'name': 'Kadaster',
                     'application': 'BAGExtract',
@@ -145,6 +146,12 @@ class TestBagExtractSoapInterface:
             }
             if expected_full_location:
                 expected_new_dataset['source']['read_config']['last_full_download_location'] = expected_full_location
+                # expected_new_dataset['source']['read_config']['download_location'] = expected_full_location
+                # print(expected_full_location)
+
+            print(expected_new_dataset)
+            print(new_dataset)
+            print("--")
 
             assert expected_new_dataset == new_dataset
 
