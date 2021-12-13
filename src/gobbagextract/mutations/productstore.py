@@ -1,4 +1,6 @@
 from pathlib import Path
+from typing import Union
+from urllib.parse import urljoin
 
 import requests
 
@@ -23,11 +25,11 @@ class ProductStore:
         return cls._request(method='POST', url=KADASTER_PRODUCTSTORE_AFGIFTE_URL, **kwargs)
 
     @classmethod
-    def download(cls, afgifte: Afgifte, destination: Path, **kwargs) -> Path:
-        url = KADASTER_PRODUCTSTORE_DOWNLOAD_URL + '/' + afgifte.AfgifteID
-        file_ = Path(destination, afgifte.Bestandsnaam)
+    def download(cls, afgifte: Afgifte, destination: Union[str, Path], **kwargs) -> Path:
+        url = urljoin(KADASTER_PRODUCTSTORE_DOWNLOAD_URL, 'productstore/' + afgifte.AfgifteID)
+        file_ = Path(destination).expanduser() / afgifte.Bestandsnaam
 
         resp = cls._request(method='POST', url=url, **kwargs)
-        with open(file_, 'wb') as f:
-            f.write(resp.content)
+        file_.write_bytes(resp.content)
+
         return file_
