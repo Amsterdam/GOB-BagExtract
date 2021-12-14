@@ -11,16 +11,21 @@ from gobbagextract.datastore.bag_extract import BagExtractDatastore
 
 
 def connect(func):
-    def wrapper(*args, **kwargs):
-        self = args[0]
+    def wrapper(self, *args, **kwargs):
         try:
+            # connect
             if self._data_src:
                 self._data_src.connect()
             self._data_dst.connect()
 
-            return func(self, *args[1:], **kwargs)
+            return func(self, *args, **kwargs)
         finally:
-            self.disconnect()
+            # disconnect
+            if self._data_src:
+                self._data_src.disconnect()
+            self._data_dst.disconnect()
+            self._data_src = None
+            self._data_dst = None
 
     return wrapper
 
@@ -58,14 +63,6 @@ class PrepareClient:
             'entity': dataset['entity'],
             'gemeente': read_config.get('gemeente'),
         }
-
-    def disconnect(self):
-        """Closes open database connections."""
-        if self._data_src:
-            self._data_src.disconnect()
-        self._data_dst.disconnect()
-        self._data_src = None
-        self._data_dst = None
 
     @connect
     def import_dataset(self) -> dict:

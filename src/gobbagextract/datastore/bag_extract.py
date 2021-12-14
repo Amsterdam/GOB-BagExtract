@@ -180,10 +180,10 @@ class BagExtractDatastore(Datastore):
         self.tmp_path = Path(self.tmp_dir.name)
         self.files = None
         self.ids = None
-        self._gemeente = read_config.get('gemeentes')[0]  # For now we only support Weesp
         self._last_update = last_update
 
         self._check_config()
+        self._gemeente = read_config.get('gemeentes')[0]  # For now we only support Weesp
 
         xml_object = self.read_config.get('xml_object')
         self.full_xml_path = f"./sl:standBestand/sl:stand/sl-bag-extract:bagObject/Objecten:{xml_object}"

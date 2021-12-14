@@ -1,37 +1,49 @@
 import datetime
-import pprint
-from unittest import TestCase
-
 import os
+import pprint
+from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest import TestCase
 from unittest.mock import MagicMock, call, patch
 
-from gobbagextract.datastore.bag_extract import BagExtractDatastore, \
-    GOBException, _extract_nested_zip, ElementFormatter
+from gobbagextract.datastore.bag_extract import BagExtractDatastore, GOBException, _extract_nested_zip, ElementFormatter
+from gobbagextract.mutations.afgifte import Afgifte
 from gobcore.enum import ImportMode
+
+mock_afgifte = Afgifte(
+    Bestandsnaam='BAGGEM1234L-15122021.zip',
+    AfgifteID='1234-5678-9',
+    artikelnummer='2529'
+)
+
+mock_afgifte_mut = Afgifte(
+    Bestandsnaam='BAGNLDM-15122021-16122021.zip',
+    AfgifteID='1234-5678-9',
+    artikelnummer='2529'
+)
+
+mock_afgifte_gobexception = Afgifte(
+    Bestandsnaam='BAGGEM1234L-123456789.zip',
+    AfgifteID='1234-5678-9',
+    artikelnummer='2529'
+)
 
 
 class TestModuleFunctions(TestCase):
 
     def test_extract_nested_zip(self):
         testfile = os.path.join(os.path.dirname(__file__), 'testzip_for_extraction.zip')
-        tmpdir = TemporaryDirectory()
 
-        _extract_nested_zip(testfile, ['zipfile.zip', 'some_nested_zip.zip'], tmpdir.name)
-
-        self.assertEqual({
-            'some_file1.txt',
-            'some_file2.txt'
-        }, set(os.listdir(tmpdir.name)))
+        with TemporaryDirectory() as tmpdir:
+            _extract_nested_zip(testfile, ['zipfile.zip', 'some_nested_zip.zip'], Path(tmpdir))
+            self.assertEqual({'some_file1.txt', 'some_file2.txt'}, set(os.listdir(tmpdir)))
 
 
 class TestElementFormatter(TestCase):
-    """Class is mostly tested with the test_query_full and test_query_mutations methods in the class below
-
-    """
+    """Class is mostly tested with the test_query_full and test_query_mutations methods in the class below."""
 
     @patch("gobbagextract.datastore.bag_extract.ogr.CreateGeometryFromGML")
-    @patch("gobbagextract.datastore.bag_extract.ET")
+    @patch("gobbagextract.datastore.bag_extract.ElementTree")
     def test_gml_to_wkt(self, mock_et, mock_create_geometry):
         ef = ElementFormatter('')
 
@@ -57,6 +69,7 @@ class TestBagExtractDatastore(TestCase):
             }
             ds = BagExtractDatastore(connection_config, read_config, None)
             ds.tmp_dir.name = "/tmp_dir_name"
+            ds.tmp_path = "/tmp_dir_name"
             return ds
 
     def test_check_config(self):
@@ -99,118 +112,84 @@ class TestBagExtractDatastore(TestCase):
             "./ml:mutatieBericht/ml:mutatieGroep/ml:wijziging/ml:wordt/mlm:bagObject/Objecten:Object",
         ], ds.mutation_xml_paths)
 
-    @patch("gobbagextract.datastore.bag_extract.os.listdir")
-    @patch("gobbagextract.datastore.bag_extract._extract_nested_zip")
-    def test_extract_full_file(self, mock_extract_zip, mock_listdir):
+    @patch('gobbagextract.datastore.bag_extract._extract_nested_zip')
+    def test_extract_full_file(self, mock_extract_zip):
         ds = self.get_test_object()
-        mock_listdir.return_value = [
-            "fileA0001.xml",
-            "fileA0002.xml",
-            "fileA0003.zip",
-        ]
+        files = ["/tmp_dir_name/full/fileA0001.xml", "/tmp_dir_name/full/fileA0002.xml"]
 
-        file_location = "thepath/to/BAGGEM1234L-12345678.zip"
-        res = ds._extract_full_file(file_location)
+        with patch('gobbagextract.datastore.bag_extract.Path.glob', return_value=files):
+            res = ds._extract_full_file(mock_afgifte)
 
         mock_extract_zip.assert_called_with(
-            file_location, [
-                '1234GEM12345678.zip',
-                '1234OBJT12345678.zip',
-            ],
-            "/tmp_dir_name/full",
+            Path("/tmp_dir_name/BAGGEM1234L-15122021.zip"),
+            ['1234GEM15122021.zip', '1234OBJT15122021.zip'],
+            Path("/tmp_dir_name/full"),
         )
-        self.assertEqual([
-            "/tmp_dir_name/full/fileA0001.xml",
-            "/tmp_dir_name/full/fileA0002.xml",
-        ], res)
+        self.assertEqual(files, res)
 
         # Invalid filename
         with self.assertRaises(GOBException):
-            ds._extract_full_file("thepath/to/BAGGEM123L-148024.zip")
+            ds._extract_full_file(mock_afgifte_gobexception)
 
-    @patch("gobbagextract.datastore.bag_extract.os.listdir")
     @patch("gobbagextract.datastore.bag_extract._extract_nested_zip")
-    def test_extract_mutations_file(self, mock_extract_zip, mock_listdir):
+    def test_extract_mutations_file(self, mock_extract_zip):
         ds = self.get_test_object()
-        mock_listdir.return_value = [
-            "fileA0001.xml",
-            "fileA0002.xml",
-            "fileA0003.zip",
-        ]
+        files = ["fileA0001.xml", "fileA0002.xml", "fileA0003.zip"]
 
-        file_location = "thepath/to/BAGNLDM-12345678-12345679.zip"
-        res = ds._extract_mutations_file(file_location)
+        with patch('gobbagextract.datastore.bag_extract.Path.glob', return_value=files):
+            res = ds._extract_mutations_file(mock_afgifte_mut)
 
         mock_extract_zip.assert_called_with(
-            file_location, [
-                "9999MUT12345678-12345679.zip"
-            ],
-            "/tmp_dir_name/mutations",
+            Path("/tmp_dir_name/BAGNLDM-15122021-16122021.zip"),
+            ['9999MUT15122021-16122021.zip'],
+            Path("/tmp_dir_name/mutations")
         )
-        self.assertEqual([
-            "/tmp_dir_name/mutations/fileA0001.xml",
-            "/tmp_dir_name/mutations/fileA0002.xml",
-        ], res)
+        self.assertEqual(files, res)
 
         # Invalid filename
         with self.assertRaises(GOBException):
-            ds._extract_mutations_file("thepath/to/BAGNLDM-12345678-123.zip")
+            ds._extract_mutations_file(mock_afgifte_gobexception)
 
-    @patch("gobbagextract.datastore.bag_extract.ET")
-    def test_get_mutation_ids(self, mock_et):
+    @patch("gobbagextract.datastore.bag_extract.ProductStore")
+    @patch("gobbagextract.datastore.bag_extract.ElementTree")
+    def test_get_mutation_ids(self, mock_et, mock_store):
         class MockElm:
             def __init__(self, text):
                 self.text = text
 
         ds = self.get_test_object()
-        ds._download_file = MagicMock()
         ds._extract_full_file = MagicMock(return_value=['file1', 'file2'])
 
         ds.read_config['last_full_download_location'] = 'last/full/download/location'
         mock_et.parse.return_value.getroot.return_value.iterfind.return_value = [MockElm('id1'), MockElm('id2')]
 
-        self.assertEqual(['id1', 'id2', 'id1', 'id2'], ds._get_mutation_ids())
-        ds._get_mutation_ids()
-        mock_et.parse.assert_has_calls([
-            call('file1'),
-            call('file2'),
-        ], any_order=True)
-        ds._download_file.assert_called_with('last/full/download/location')
-        ds._extract_full_file.assert_called_with(ds._download_file.return_value)
+        self.assertEqual(['id1', 'id2', 'id1', 'id2'], list(ds._get_mutation_ids()))
+        mock_store.method_calls = [call.download('last/full/download/location', destination='/tmp_dir_name')]
 
-    def test_connect(self):
+        ds._get_mutation_ids()
+        mock_et.parse.assert_has_calls([call('file1'), call('file2')], any_order=True)
+
+    @patch("gobbagextract.datastore.bag_extract.ProductStore")
+    def test_connect(self, mock_store):
         ds = self.get_test_object()
-        ds._download_file = MagicMock()
+
         ds._extract_full_file = MagicMock()
         ds._extract_mutations_file = MagicMock()
         ds._get_mutation_ids = MagicMock()
 
+        # full
         ds.connect()
-        self.assertEqual(ds._extract_full_file.return_value, ds.files)
-        ds._download_file.assert_called_with(ds.read_config['download_location'])
-        ds._extract_full_file.assert_called_with(ds._download_file.return_value)
+        mock_store.download.assert_called_with(ds.read_config['download_location'], destination=ds.tmp_path)
+        ds._extract_full_file.assert_called_with(ds.read_config['download_location'])
         ds._get_mutation_ids.assert_not_called()
         self.assertIsNone(ds.ids)
 
+        # mutations
         ds.mode = ImportMode.MUTATIONS
         ds.connect()
-        self.assertEqual(ds._extract_mutations_file.return_value, ds.files)
-        ds._extract_mutations_file.assert_called_with(ds._download_file.return_value)
-        self.assertEqual(ds._get_mutation_ids.return_value, ds.ids)
-
-    @patch("builtins.open")
-    @patch("gobbagextract.datastore.bag_extract.os.getenv", lambda x: x)
-    @patch("gobbagextract.datastore.bag_extract.requests")
-    def test_download_file(self, mock_requests, mock_open):
-        ds = self.get_test_object()
-
-        self.assertEqual("/tmp_dir_name/BAGGEM0457L-15112020.zip",
-                         ds._download_file("http://some.location.example.com/dir/BAGGEM0457L-15112020.zip"))
-
-        mock_requests.get.assert_called_with("http://some.location.example.com/dir/BAGGEM0457L-15112020.zip")
-        mock_open.assert_called_with('/tmp_dir_name/BAGGEM0457L-15112020.zip', 'wb')
-        mock_open.return_value.__enter__.return_value.write.assert_called_with(mock_requests.get.return_value.content)
-        mock_requests.get.return_value.raise_for_status.assert_called_once()
+        mock_store.download.assert_called_with(ds.read_config['download_location'], destination=ds.tmp_path)
+        ds._get_mutation_ids.assert_called_once()
+        ds._extract_mutations_file.assert_called_with(ds.read_config['download_location'])
 
     def test_query_full(self):
         """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
