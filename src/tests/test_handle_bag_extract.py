@@ -39,7 +39,7 @@ class TestHandleBagExtract:
     @freezegun.freeze_time("2021-11-14")
     def test_handle_bag_extract_message_inserts_mutation(
             self, database: Session, gob_logger_mock: MagicMock, gob_logger_manager_mock, mock_response_mutaties: None,
-            mock_response_full: None, mock_response_mutations_download
+            mock_response_full: None, mock_response_mutations_download: None
     ):
         message = {
             "header": {

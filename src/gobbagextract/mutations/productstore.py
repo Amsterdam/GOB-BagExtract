@@ -5,8 +5,7 @@ from urllib.parse import urljoin
 import requests
 
 from gobbagextract.config import KADASTER_PRODUCTSTORE_AFGIFTE_URL, KADASTER_PRODUCTSTORE_CERT, \
-    KADASTER_PRODUCTSTORE_KEY, \
-    KADASTER_PRODUCTSTORE_DOWNLOAD_URL
+    KADASTER_PRODUCTSTORE_KEY, KADASTER_PRODUCTSTORE_DOWNLOAD_URL
 from gobbagextract.mutations.afgifte import Afgifte
 
 
@@ -26,7 +25,7 @@ class ProductStore:
 
     @classmethod
     def download(cls, afgifte: Afgifte, destination: Union[str, Path], **kwargs) -> Path:
-        url = urljoin(KADASTER_PRODUCTSTORE_DOWNLOAD_URL, 'productstore/' + afgifte.AfgifteID)
+        url = urljoin(KADASTER_PRODUCTSTORE_DOWNLOAD_URL, afgifte.AfgifteID)
         file_ = Path(destination).expanduser() / afgifte.Bestandsnaam
 
         resp = cls._request(method='POST', url=url, **kwargs)
