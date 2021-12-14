@@ -191,6 +191,11 @@ class TestBagExtractDatastore(TestCase):
         ds._get_mutation_ids.assert_called_once()
         ds._extract_mutations_file.assert_called_with(ds.read_config['download_location'])
 
+    def test_disconnect(self):
+        ds = self.get_test_object()
+        ds.disconnect()
+        ds.tmp_dir.cleanup.assert_called_once()
+
     def test_query_full(self):
         """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
 
