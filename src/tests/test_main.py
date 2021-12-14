@@ -20,8 +20,8 @@ class TestMain(TestCase):
         self.mock_msg = {
             'dataset_file': 'data/somefile.json',
             'header': {
-                "catalogue": "bag_test",
-                "collection": "ligplaatsen_test",
+                "catalogue": "bag",
+                "collection": "ligplaatsen",
             },
         }
 
@@ -72,9 +72,9 @@ class TestMain(TestCase):
             'dataset_file': 'data/somefile.json',
             'header': {
                 'application': 'BAGExtract',
-                'catalogue': 'bag_test',
-                "collection": "ligplaatsen_test",
-                'entity': 'ligplaatsen_test',
+                'catalogue': 'bag',
+                "collection": "ligplaatsen",
+                'entity': 'ligplaatsen',
                 'source': 'Kadaster',
             }
         }
