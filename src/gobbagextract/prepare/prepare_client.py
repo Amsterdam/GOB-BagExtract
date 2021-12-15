@@ -12,6 +12,10 @@ from gobbagextract.datastore.bag_extract import BagExtractDatastore
 
 
 def connect(func):
+    """
+    Opens and closes the `_data_src` and `_data_dst` connection around a Prepareclient `func`.
+    `_data_src` and `_data_dst must have a *connect* and *disconnect* method implemented.
+    """
     def wrapper(self, *args, **kwargs):
         try:
             # connect
