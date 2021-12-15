@@ -7,10 +7,10 @@ set -e # stop on any error
 find . -name "*.pyc" -exec rm -f {} \;
 
 echo "Running tests"
-coverage run -m pytest tests/
+coverage run --source=./gobbagextract -m pytest tests/
 
 echo "Running coverage report"
-coverage report term-missing --fail-under=100
+coverage report --show-missing --fail-under=100
 
 echo "Running style checks"
 flake8
