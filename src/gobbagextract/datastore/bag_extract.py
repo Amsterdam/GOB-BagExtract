@@ -7,7 +7,7 @@ import re
 from xml.etree import ElementTree
 from osgeo import ogr
 from tempfile import TemporaryDirectory
-from typing import List, Union, Iterator
+from typing import List, Union, Iterator, Any
 from zipfile import ZipFile
 from pathlib import Path
 
@@ -70,7 +70,7 @@ class ElementFormatter:
         gml.FlattenTo2D()
         return gml.ExportToWkt()
 
-    def _flatten_nested_list(self, lst: list, key_prefix: str) -> dict:
+    def _flatten_nested_list(self, lst: list, key_prefix: str) -> dict[str, Any]:
         """Flattens list, called from the _flatten_dict method. Pulls the dict keys in the list out.
 
         For example, when called with list [{"some_key": "A"}, {"some_key": "B"}] and key_prefix "prefix", the result

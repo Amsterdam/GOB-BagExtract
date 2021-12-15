@@ -1,4 +1,5 @@
 import datetime as dt
+from typing import Any
 
 from gobcore.enum import ImportMode
 from gobcore.logging.logger import logger
@@ -38,7 +39,7 @@ class PrepareClient:
             {"name": "object", "type": "JSON"},
     ]
 
-    def __init__(self, msg: dict, dataset, mode: ImportMode, last_date: dt.date):
+    def __init__(self, msg: dict, dataset: dict[str, Any], mode: ImportMode, last_date: dt.date):
         self.header = msg.get("header", {})
         self.dataset = dataset
         self.entity = dataset["entity"]

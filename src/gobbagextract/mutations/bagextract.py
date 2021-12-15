@@ -48,22 +48,18 @@ class BagExtractMutationsHandler:
         gemeente = afgifte.get_gemeente()
 
         if mode == ImportMode.FULL.value:
-            ret = self.get_full(date, gemeente)
-        else:
-            ret = self.get_daily_mutations(date)
+            return self.get_full(date, gemeente) + (date,)
 
-        return ret + (date,)
+        return self.get_daily_mutations(date) + (date,)
 
     def start_next(self, last_import: MutationImport, gemeente: str) -> tuple[ImportMode, Afgifte, dt.date]:
         date = Afgifte(Bestandsnaam=last_import.filename).get_date()
         next_date = date + dt.timedelta(days=1)
 
         if next_date.day == self.FULL_IMPORT_DAY:
-            ret = self.get_full(next_date, gemeente)
-        else:
-            ret = self.get_daily_mutations(next_date)
+            return self.get_full(next_date, gemeente) + (next_date, )
 
-        return ret + (next_date, )
+        return self.get_daily_mutations(next_date) + (next_date, )
 
     def get_full(self, date: dt.date, gemeente: str) -> Tuple[ImportMode, Afgifte]:
         date = self._last_full_import_date(date)

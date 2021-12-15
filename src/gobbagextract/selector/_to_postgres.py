@@ -1,4 +1,4 @@
-from typing import Any
+from typing import Any, Iterator
 
 from psycopg2.extras import Json
 
@@ -19,8 +19,8 @@ class ToPostgresSelector:
                 row[idx] = Json(val)
         return row
 
-    def _write_rows(self, table: str, values, columns: list[dict[str, str]]) -> int:
-        """Prepares and write values to a postgresql database and return number of rows."""
+    def _write_rows(self, table: str, values: Iterator[list], columns: list[dict[str, str]]) -> int:
+        """Prepares and writes values to a postgresql database and returns number of rows."""
         values = [self._prepare_row(row, columns) for row in values]
         column_names = [c["name"] for c in columns]
 
