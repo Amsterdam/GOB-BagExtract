@@ -1,4 +1,6 @@
 import itertools
+from typing import Iterator
+
 from gobcore.exceptions import GOBException
 from gobcore.logging.logger import logger
 from gobcore.datastore.datastore import Datastore
@@ -31,36 +33,31 @@ class Selector:
         total_cnt = 0
         table = self.destination_table['name']
         columns = self.destination_table['columns']
-        column_names = [c['name'] for c in columns]
 
         while True:
             rows = self._read_rows(self.query)
             chunk = itertools.islice(rows, self.WRITE_BATCH_SIZE)
-            values = self._values_list(chunk, columns)
-            self._write_rows(table, values, column_names)
+            values = self._process_values(chunk, columns)
+            row_cnt = self._write_rows(table, values, columns)
 
-            total_cnt += len(values)
-            # logger.info(f"Written {total_cnt:,} rows to destination table {table}")
-
-            if len(values) < self.WRITE_BATCH_SIZE:
+            total_cnt += row_cnt
+            if row_cnt < self.WRITE_BATCH_SIZE:
                 logger.info(f"Written {total_cnt:,} rows to destination table {table}")
                 return total_cnt
 
-    def _values_list(self, rows: iter, columns: list) -> list:
+    def _process_values(self, rows: iter, columns: list) -> Iterator[list]:
         """
         Transforms the rows (dictionaries of column:value pairs) to lists of values in the order as specified by
         columns. If a column:value pair is missing for a column present in columns, a GOBException is raised when
         self.ignore_missing == False. If self.ignore_missing == True, the value for that column will be set to None.
         """
-        def process_col(column, row):
-            if column['name'].lower() in row:
-                return row[column['name'].lower()]
+        def process_col(column, row_):
+            if column['name'].lower() in row_:
+                return row_[column['name'].lower()]
             elif not self.ignore_missing:
                 raise GOBException(f"Missing column {column['name'].lower()} in query result")
             else:
                 return None
 
-        def process_row(row):
-            return [process_col(col, row) for col in columns]
-
-        return [self._prepare_row(process_row(row), columns) for row in rows]
+        for row in rows:
+            yield [process_col(col, row) for col in columns]

@@ -39,10 +39,10 @@ class TestSelector(TestCase):
         self.selector.WRITE_BATCH_SIZE = 24
         self.selector._create_destination_table = MagicMock()
         self.selector._read_rows = MagicMock()
-        self.selector._write_rows = MagicMock()
+        self.selector._write_rows = MagicMock(side_effect=[24, 24, 24, 24, 1])
 
         # Mock values list. Important that returned length is the same as length of input generator x.
-        self.selector._values_list = lambda x, y: [[] for _ in x]
+        self.selector._process_values = lambda x, y: [[] for _ in x]
 
         # Create bogus data, matching with table definition
         self.selector._read_rows.return_value = iter([{"col_a": str(i), "col_b": i} for i in range(result_cnt)])
@@ -62,7 +62,7 @@ class TestSelector(TestCase):
         self.selector.WRITE_BATCH_SIZE = result_cnt
         self.selector._create_destination_table = MagicMock()
         self.selector._read_rows = MagicMock()
-        self.selector._write_rows = MagicMock()
+        self.selector._write_rows = MagicMock(side_effect=[2, 0])
 
         # Mock values list. Important that returned length is the same as length of input generator x.
         self.selector._values_list = lambda x, y: [[] for _ in x]
@@ -99,7 +99,7 @@ class TestSelector(TestCase):
             [6, 4, 2],
             [4, 2, 8]
         ]
-        self.assertEqual(expected_result, self.selector._values_list(rows, cols))
+        self.assertEqual(expected_result, list(self.selector._process_values(rows, cols)))
 
     def test_values_list_missing_column_exception(self):
         self.selector._prepare_row = lambda x, y: x  # return rowvals as is
@@ -116,10 +116,9 @@ class TestSelector(TestCase):
         ]
 
         with self.assertRaisesRegex(GOBException, "Missing column"):
-            self.selector._values_list(rows, cols)
+            list(self.selector._process_values(rows, cols))
 
     def test_values_list_missing_column_allowed(self):
-        self.selector._prepare_row = lambda x, y: x  # return rowvals as is
         rows = [
             {"col_a": 8, "col_b": 2, "col_c": 7},
             {"col_b": 2, "col_c": 5, "col_a": 0},
@@ -141,4 +140,4 @@ class TestSelector(TestCase):
             [None, 4, 2],
             [4, 2, None]
         ]
-        self.assertEqual(expected_result, self.selector._values_list(rows, cols))
+        self.assertEqual(expected_result, list(self.selector._process_values(rows, cols)))

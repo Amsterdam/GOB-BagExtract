@@ -57,5 +57,10 @@ class TestToPostgresSelector(TestCase):
     def test_write_rows(self):
         table = "some_table"
         values = [[2, 4, 5], [2, 2, 0], [4, 4, 3]]
-        self.selector._write_rows(table, values)
-        self.selector._dst_datastore.write_rows.assert_called_with(table, values, None)
+        columns = [
+            {'type': 'typ1', 'name': 'naam1'},
+            {'type': 'typ2', 'name': 'naam2'},
+            {'type': 'typ3', 'name': 'naam3'}
+        ]
+        self.selector._write_rows(table, values, columns)
+        self.selector._dst_datastore.write_rows.assert_called_with(table, values, columns=['naam1', 'naam2', 'naam3'])
