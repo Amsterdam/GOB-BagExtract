@@ -25,10 +25,8 @@ def connect(force_migrate=False):
     global session, engine
 
     try:
-        db_str = f"{DATABASE_CONFIG['username']}@{DATABASE_CONFIG['host']}:" \
-                 f"{DATABASE_CONFIG['port']}/{DATABASE_CONFIG['database']}"
-        print('Connecting to DB ', db_str)
         engine = create_engine(URL(**DATABASE_CONFIG), connect_args={'sslmode': 'require'})
+        print("Connected to BAGExtract database")
 
         migrate_storage(force_migrate)
 
