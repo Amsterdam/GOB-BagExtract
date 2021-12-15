@@ -75,6 +75,8 @@ class BagExtractMutationsHandler:
                 return ImportMode.FULL, afgifte
 
         # TODO: This implies when file is not yet availble on the 15th we are failing this workflow!
+        #  Possible solution: Adjust the workflow so it will pick up the last available full import
+        #  and all daily mutations after that. (and thus skip the missing full)
         raise NothingToDo.file_not_available(self._full_filename(date, gemeente))
 
     def get_daily_mutations(self, date: dt.date) -> tuple[ImportMode, Afgifte]:

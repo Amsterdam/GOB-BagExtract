@@ -10,7 +10,18 @@ from gobbagextract.mutations.afgifte import Afgifte
 
 
 class ProductStore:
+    """
+    Stores the connection to the Kadaster download service (productstore).
+    Possible actions:
+     - list: list the available `afgiftes` as xml
+     - download: download an `afgifte`
 
+     Required vars:
+     - KADASTER_PRODUCTSTORE_CERT
+     - KADASTER_PRODUCTSTORE_KEY
+     - KADASTER_PRODUCTSTORE_AFGIFTE_URL
+     - KADASTER_PRODUCTSTORE_DOWNLOAD_URL
+    """
     cert = (KADASTER_PRODUCTSTORE_CERT, KADASTER_PRODUCTSTORE_KEY)
 
     @classmethod
@@ -20,11 +31,13 @@ class ProductStore:
             return resp
 
     @classmethod
-    def list(cls, **kwargs):
+    def list(cls, **kwargs) -> requests.Response:
+        """Returns XML response containing bestandsafgiftes."""
         return cls._request(method="POST", url=KADASTER_PRODUCTSTORE_AFGIFTE_URL, **kwargs)
 
     @classmethod
     def download(cls, afgifte: Afgifte, destination: Union[str, Path], **kwargs) -> Path:
+        """Downloads an `afgifte` to `destination`."""
         url = urljoin(KADASTER_PRODUCTSTORE_DOWNLOAD_URL, afgifte.AfgifteID)
         file_ = Path(destination).expanduser() / afgifte.Bestandsnaam
 
