@@ -45,7 +45,7 @@ def set_bag_data_config(tests_dir: Path) -> Generator[None, None, None]:
 
 @pytest.fixture
 def mock_config() -> dict:
-    return json.loads(Path(os.environ['BAG_DATA_CONFIG'], 'bag.test.json').read_text())
+    return json.loads(Path(os.environ["BAG_DATA_CONFIG"], "bag.test.json").read_text())
 
 
 @pytest.fixture
@@ -77,15 +77,15 @@ def database(app_dir: Path, recreate_database) -> Generator[Session, None, None]
     :return: a generator which yields a db session.
     """
     test_db_name = recreate_database
-    DATABASE_CONFIG['database'] = test_db_name
+    DATABASE_CONFIG["database"] = test_db_name
     engine: Engine = create_engine(URL(**DATABASE_CONFIG), echo=True)
     session_factory = sessionmaker(bind=engine)
     session: Session = session_factory()
 
     # Migrate the database
     alembic_config = AlembicConfig(app_dir / "alembic.ini")
-    alembic_config.set_main_option('script_location', str(app_dir / "alembic"))
-    alembic_upgrade(alembic_config, 'head')
+    alembic_config.set_main_option("script_location", str(app_dir / "alembic"))
+    alembic_upgrade(alembic_config, "head")
 
     # Set global variables to make the app work
     Base.metadata.bind = engine
@@ -99,29 +99,29 @@ def database(app_dir: Path, recreate_database) -> Generator[Session, None, None]
 
 @pytest.fixture
 def mock_kadaster_request(tests_dir) -> str:
-    xml = tests_dir / 'fixtures' / 'xml' / 'request.xml'
+    xml = tests_dir / "fixtures" / "xml" / "request.xml"
     return xml.read_text()
 
 
 @pytest.fixture
 def mock_response_full(tests_dir, requests_mock):
-    xml = tests_dir / 'fixtures' / 'xml' / 'response_full.xml'
+    xml = tests_dir / "fixtures" / "xml" / "response_full.xml"
     requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
 
 
 @pytest.fixture
 def mock_response_mutaties(tests_dir, requests_mock):
-    xml = tests_dir / 'fixtures' / 'xml' / 'response_mutaties.xml'
+    xml = tests_dir / "fixtures" / "xml" / "response_mutaties.xml"
     requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
 
 
 @pytest.fixture
 def mock_response_empty(tests_dir, requests_mock):
-    xml = tests_dir / 'fixtures' / 'xml' / 'response_empty.xml'
+    xml = tests_dir / "fixtures" / "xml" / "response_empty.xml"
     requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())
 
 
 @pytest.fixture
 def mock_response_error(tests_dir, requests_mock):
-    xml = tests_dir / 'fixtures' / 'xml' / 'response_error.xml'
+    xml = tests_dir / "fixtures" / "xml" / "response_error.xml"
     requests_mock.post(KADASTER_PRODUCTSTORE_AFGIFTE_URL, text=xml.read_text())

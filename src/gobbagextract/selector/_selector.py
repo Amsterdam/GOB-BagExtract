@@ -24,15 +24,15 @@ class Selector:
         self._src_datastore = src_datastore
         self._dst_datastore = dst_datastore
         self._config = config
-        self.destination_table = config['destination_table']
-        self.ignore_missing = config.get('ignore_missing', False)
-        self.query = self._config.get('query', '')
+        self.destination_table = config["destination_table"]
+        self.ignore_missing = config.get("ignore_missing", False)
+        self.query = self._config.get("query", "")
 
     def select(self) -> int:
         """Entry method. Saves result of select query in destination table."""
         total_cnt = 0
-        table = self.destination_table['name']
-        columns = self.destination_table['columns']
+        table = self.destination_table["name"]
+        columns = self.destination_table["columns"]
 
         while True:
             rows = self._read_rows(self.query)
@@ -52,8 +52,8 @@ class Selector:
         self.ignore_missing == False. If self.ignore_missing == True, the value for that column will be set to None.
         """
         def process_col(column, row_):
-            if column['name'].lower() in row_:
-                return row_[column['name'].lower()]
+            if column["name"].lower() in row_:
+                return row_[column["name"].lower()]
             elif not self.ignore_missing:
                 raise GOBException(f"Missing column {column['name'].lower()} in query result")
             else:

@@ -7,11 +7,11 @@ from gobbagextract.mutations.afgifte import Afgifte
 from gobbagextract.mutations.productstore import ProductStore
 
 NAMESPACES = {
-    'v20': 'http://www.kadaster.nl/schemas/gds2/make2stock/v20201201',
-    'soapenv': 'http://schemas.xmlsoap.org/soap/envelope/',
-    'SOAP-ENV': 'http://schemas.xmlsoap.org/soap/envelope/',
-    'ns2': 'http://www.kadaster.nl/schemas/generiek/procesresultaat/v20110922',
-    'ns3': 'http://www.kadaster.nl/schemas/gds2/make2stock/v20201201'
+    "v20": "http://www.kadaster.nl/schemas/gds2/make2stock/v20201201",
+    "soapenv": "http://schemas.xmlsoap.org/soap/envelope/",
+    "SOAP-ENV": "http://schemas.xmlsoap.org/soap/envelope/",
+    "ns2": "http://www.kadaster.nl/schemas/generiek/procesresultaat/v20110922",
+    "ns3": "http://www.kadaster.nl/schemas/gds2/make2stock/v20201201"
 }
 
 
@@ -27,12 +27,12 @@ class XmlParser:
     def strip_namespace(self, tag: str) -> str:
         if self.ns:
             for nspace in self.ns.values():
-                tag = tag.replace(f'{{{nspace}}}', '')
+                tag = tag.replace(f"{{{nspace}}}", "")
         return tag
 
     def node_to_dict(self, node: ElementTree.Element) -> dict[str, str]:
         """Returns dict with tags as key and text as value. Removes given namespaces from tags."""
-        return {self.strip_namespace(subnode.tag): subnode.text for subnode in node.findall('./')}
+        return {self.strip_namespace(subnode.tag): subnode.text for subnode in node.findall("./")}
 
     def findall(self, path) -> Generator[ElementTree.Element, None, None]:
         yield from (node for node in self.tree.iterfind(path, self.ns) if node)
@@ -83,5 +83,5 @@ class BagSoapHandler(XmlParser):
         self.parse(resp.text)
 
         # ignore namespaces in path
-        for node in self.findall('*//{*}BestandAfgiftes'):
+        for node in self.findall("*//{*}BestandAfgiftes"):
             yield Afgifte(**self.node_to_dict(node))

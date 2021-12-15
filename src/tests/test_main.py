@@ -18,8 +18,8 @@ class TestMain(TestCase):
 
     def setUp(self):
         self.mock_msg = {
-            'dataset_file': 'data/somefile.json',
-            'header': {
+            "dataset_file": "data/somefile.json",
+            "header": {
                 "catalogue": "bag",
                 "collection": "ligplaatsen",
             },
@@ -29,7 +29,7 @@ class TestMain(TestCase):
     @patch("gobbagextract.__main__.connect")
     @patch("gobbagextract.__main__.messagedriven_service")
     def test_init___main__(self, mock_messagedriven_service, mock_connect, mock_sys):
-        mock_sys.argv = ['arg0']
+        mock_sys.argv = ["arg0"]
         from gobbagextract import __main__ as module
 
         with patch.object(module, "__name__", "__main__"):
@@ -39,12 +39,12 @@ class TestMain(TestCase):
     @patch("gobbagextract.__main__.sys")
     @patch("gobbagextract.__main__.handle_bag_extract_message")
     def test_init_wth_args(self, mock_handle_bag_extract_message, mock_sys):
-        collection = 'COL'
-        mock_sys.argv = ['arg0', collection]
+        collection = "COL"
+        mock_sys.argv = ["arg0", collection]
         msg = {
-            'header': {
-                'catalogue': 'bag',
-                'collection': collection,
+            "header": {
+                "catalogue": "bag",
+                "collection": collection,
             }
         }
         from gobbagextract import __main__ as module
@@ -69,13 +69,13 @@ class TestMain(TestCase):
         msg = handle_bag_extract_message(self.mock_msg)
 
         result_msg = {
-            'dataset_file': 'data/somefile.json',
-            'header': {
-                'application': 'BAGExtract',
-                'catalogue': 'bag',
+            "dataset_file": "data/somefile.json",
+            "header": {
+                "application": "BAGExtract",
+                "catalogue": "bag",
                 "collection": "ligplaatsen",
-                'entity': 'ligplaatsen',
-                'source': 'Kadaster',
+                "entity": "ligplaatsen",
+                "source": "Kadaster",
             }
         }
         self.assertEqual(result_msg, self.mock_msg)
@@ -89,11 +89,11 @@ class TestMain(TestCase):
     def test_handle_import_msg_mutations(self, mock_logger, mock_repo, mock_session, mock_client):
 
         dataset = {
-            'application': 'APP NAME',
-            'catalogue': 'CAT',
-            'dataset_file': 'data/fromheader.json',
-            'entity': 'ENT',
-            'source': {'application': 'APP NAME'},
+            "application": "APP NAME",
+            "catalogue": "CAT",
+            "dataset_file": "data/fromheader.json",
+            "entity": "ENT",
+            "source": {"application": "APP NAME"},
         }
         mock_mutations_handler = Mock()
 
@@ -110,7 +110,7 @@ class TestMain(TestCase):
 
         _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
 
-        mock_repo.return_value.get_last.assert_called_with('CAT', 'ENT', 'APP NAME')
+        mock_repo.return_value.get_last.assert_called_with("CAT", "ENT", "APP NAME")
         mock_repo.return_value.save.assert_called_with(mocked_next_import)
 
         mock_client.assert_called_with(self.mock_msg, updated_dataset, ImportMode.MUTATIONS, date)
@@ -122,28 +122,28 @@ class TestMain(TestCase):
     def test_handle_import_msg_mutations_nothing_to_do(self, _log_no_more_left, mock_logger, mock_repo, mock_session):
         mock_mutations_handler = Mock()
         mock_mutations_handler.get_next_import.side_effect = NothingToDo()
-        dataset = {'header': 'bello'}
+        dataset = {"header": "bello"}
         msg, last = _handle_mutation_import(self.mock_msg, dataset, mock_mutations_handler)
         summary = mock_logger.get_summary()
         self.assertEqual(mock_logger.info.call_count, 2)
         self.assertEqual(last, False)
-        self.assertEqual(msg, {'header': self.mock_msg['header'], 'summary': summary})
+        self.assertEqual(msg, {"header": self.mock_msg["header"], "summary": summary})
         _log_no_more_left.assert_called_once()
 
     def test_validate_message_required_keys(self):
-        msg = {'header': {'catalogue': 'bag', 'collection': 'panden'}}
+        msg = {"header": {"catalogue": "bag", "collection": "panden"}}
         _validate_message(msg)
 
     def test_validate_message_missing_cataluge(self):
-        msg = {'header': {'collection': 'panden'}}
+        msg = {"header": {"collection": "panden"}}
         self.assertRaises(GOBException, _validate_message, msg)
 
     def test_validate_message_missing_header(self):
-        msg = {'not_header': {}}
+        msg = {"not_header": {}}
         self.assertRaises(GOBException, _validate_message, msg)
 
     @patch("gobbagextract.__main__.logger")
-    @freeze_time('2013-04-09')
+    @freeze_time("2013-04-09")
     def test_log_no_more_left(self, mock_logger):
         mock_logger.error = Mock()
         mock_logger.info = Mock()

@@ -92,7 +92,7 @@ class TestSelector(TestCase):
             {"name": "col_c"}
         ]
 
-        # Expect values of 'rows' in the order of 'cols'
+        # Expect values of "rows" in the order of "cols"
         expected_result = [
             [8, 2, 7],
             [0, 2, 5],
@@ -133,7 +133,7 @@ class TestSelector(TestCase):
 
         self.selector.ignore_missing = True
 
-        # Expect values of 'rows' in the order of 'cols' with missing values set to None
+        # Expect values of "rows" in the order of "cols" with missing values set to None
         expected_result = [
             [8, 2, 7],
             [0, 2, 5],

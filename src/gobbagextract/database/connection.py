@@ -25,7 +25,7 @@ def connect(force_migrate=False):
     global session, engine
 
     try:
-        engine = create_engine(URL(**DATABASE_CONFIG), connect_args={'sslmode': 'require'})
+        engine = create_engine(URL(**DATABASE_CONFIG), connect_args={"sslmode": "require"})
         print("Connected to BAGExtract database")
 
         migrate_storage(force_migrate)
@@ -101,29 +101,29 @@ def migrate_storage(force_migrate):
     MIGRATION_LOCK = 24804454110  # Just some random number
 
     if not force_migrate:
-        # Don't force
+        # Don"t force
         # Nicely wait for any migrations to finish before continuing
         engine.execute(f"SELECT pg_advisory_lock({MIGRATION_LOCK})")
 
     try:
         # Check if storage is up-to-date
-        alembic_cfg = alembic.config.Config('alembic.ini')
+        alembic_cfg = alembic.config.Config("alembic.ini")
         script = alembic.script.ScriptDirectory.from_config(alembic_cfg)
         with engine.begin() as conn:
             context = migration.MigrationContext.configure(conn)
             up_to_date = context.get_current_revision() == script.get_current_head()
 
         if not up_to_date:
-            print('Migrating storage')
+            print("Migrating storage")
             alembicArgs = [
-                '--raiseerr',
-                'upgrade', 'head',
+                "--raiseerr",
+                "upgrade", "head",
             ]
             alembic.config.main(argv=alembicArgs)
     except Exception as e:
-        print(f'Storage migration failed: {str(e)}')
+        print(f"Storage migration failed: {str(e)}")
     else:  # No exception
-        print('Storage is up-to-date')
+        print("Storage is up-to-date")
 
     # Always unlock
     engine.execute(f"SELECT pg_advisory_unlock({MIGRATION_LOCK})")

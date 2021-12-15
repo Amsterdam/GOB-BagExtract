@@ -21,14 +21,14 @@ class ProductStore:
 
     @classmethod
     def list(cls, **kwargs):
-        return cls._request(method='POST', url=KADASTER_PRODUCTSTORE_AFGIFTE_URL, **kwargs)
+        return cls._request(method="POST", url=KADASTER_PRODUCTSTORE_AFGIFTE_URL, **kwargs)
 
     @classmethod
     def download(cls, afgifte: Afgifte, destination: Union[str, Path], **kwargs) -> Path:
         url = urljoin(KADASTER_PRODUCTSTORE_DOWNLOAD_URL, afgifte.AfgifteID)
         file_ = Path(destination).expanduser() / afgifte.Bestandsnaam
 
-        resp = cls._request(method='POST', url=url, **kwargs)
+        resp = cls._request(method="POST", url=url, **kwargs)
         file_.write_bytes(resp.content)
 
         return file_

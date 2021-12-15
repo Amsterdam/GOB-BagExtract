@@ -22,7 +22,7 @@ def _extract_nested_zip(zip_file, nested_zip_files: List[str], destination_dir: 
     """Extracts nested zip file from zip_file.
 
     Example:
-    _extract_nested_zip('a.zip', ['b.zip', 'c.zip'], '/tmp_dstdir')
+    _extract_nested_zip("a.zip", ["b.zip", "c.zip"], "/tmp_dstdir")
 
     with:
     a.zip
@@ -44,17 +44,17 @@ def _extract_nested_zip(zip_file, nested_zip_files: List[str], destination_dir: 
     :param destination_dir:
     :return:
     """
-    with ZipFile(zip_file, 'r') as f:
+    with ZipFile(zip_file, "r") as f:
         if len(nested_zip_files) == 0:
             f.extractall(destination_dir)
         else:
-            with f.open(nested_zip_files[0], 'r') as nested_zip_file:
+            with f.open(nested_zip_files[0], "r") as nested_zip_file:
                 nested_zip_file_data = io.BytesIO(nested_zip_file.read())
                 _extract_nested_zip(nested_zip_file_data, nested_zip_files[1:], destination_dir)
 
 
 class ElementFormatter:
-    ns_pattern = re.compile(r'{.*}')
+    ns_pattern = re.compile(r"{.*}")
     gml_namespace = "http://www.opengis.net/gml/3.2"
 
     def __init__(self, element: ElementTree.Element):
@@ -65,7 +65,7 @@ class ElementFormatter:
 
     @staticmethod
     def _gml_to_wkt(elm: ElementTree.Element) -> str:
-        gml_str = ElementTree.tostring(elm).decode('utf-8')
+        gml_str = ElementTree.tostring(elm).decode("utf-8")
         gml = ogr.CreateGeometryFromGML(gml_str)
         gml.FlattenTo2D()
         return gml.ExportToWkt()
@@ -73,10 +73,10 @@ class ElementFormatter:
     def _flatten_nested_list(self, lst: list, key_prefix: str) -> dict:
         """Flattens list, called from the _flatten_dict method. Pulls the dict keys in the list out.
 
-        For example, when called with list [{'some_key': 'A'}, {'some_key': 'B'}] and key_prefix 'prefix', the result
+        For example, when called with list [{"some_key": "A"}, {"some_key": "B"}] and key_prefix "prefix", the result
         is dict of the form:
 
-        { 'prefix/some_key': ['A', 'B'] }
+        { "prefix/some_key": ["A", "B"] }
 
         :param lst:
         :param key_prefix:
@@ -103,19 +103,19 @@ class ElementFormatter:
         """Flattens dictionary, separates keys by a / character.
 
         {
-            'a': {
-                'b': {
-                    'c': 'd',
+            "a": {
+                "b": {
+                    "c": "d",
                 },
-                'e': 'f',
-            'g': [{'h': 4}, {'h': 5}]
+                "e": "f",
+            "g": [{"h": 4}, {"h": 5}]
         }
 
         will become:
         {
-            'a/b/c': 'd',
-            'a/e': 'f',
-            'g/h': [4, 5]
+            "a/b/c": "d",
+            "a/e": "f",
+            "g/h": [4, 5]
         }
         """
         def flatten(dct: dict) -> dict:
@@ -143,7 +143,7 @@ class ElementFormatter:
             child_dicts = defaultdict(list)
 
             for child in childs:
-                child_dicts[self.ns_pattern.sub('', child.tag)].append(self._element_to_dict(child))
+                child_dicts[self.ns_pattern.sub("", child.tag)].append(self._element_to_dict(child))
 
             return {k: v[0] if len(v) == 1 else v for k, v in child_dicts.items()}
 
@@ -154,20 +154,20 @@ class ElementFormatter:
 class BagExtractDatastore(Datastore):
     namespaces = {
         # We could extract namespaces from the file, but this way we're sure they won't change in the source.
-        'DatatypenNEN3610': 'www.kadaster.nl/schemas/lvbag/imbag/datatypennen3610/v20200601',
-        'Objecten': 'www.kadaster.nl/schemas/lvbag/imbag/objecten/v20200601',
-        'gml': 'http://www.opengis.net/gml/3.2',
-        'Historie': 'www.kadaster.nl/schemas/lvbag/imbag/historie/v20200601',
-        'Objecten-ref': 'www.kadaster.nl/schemas/lvbag/imbag/objecten-ref/v20200601',
-        'ml': 'http://www.kadaster.nl/schemas/mutatielevering-generiek/1.0',
-        'mlm': 'http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-mutaties-lvc/v20200601',
-        'nen5825': 'www.kadaster.nl/schemas/lvbag/imbag/nen5825/v20200601',
-        'KenmerkInOnderzoek': 'www.kadaster.nl/schemas/lvbag/imbag/kenmerkinonderzoek/v20200601',
-        'selecties-extract': 'http://www.kadaster.nl/schemas/lvbag/extract-selecties/v20200601',
-        'sl-bag-extract': 'http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-lvc/v20200601',
-        'sl': 'http://www.kadaster.nl/schemas/standlevering-generiek/1.0',
-        'xsi': 'http://www.w3.org/2001/XMLSchema-instance',
-        'xs': 'http://www.w3.org/2001/XMLSchema',
+        "DatatypenNEN3610": "www.kadaster.nl/schemas/lvbag/imbag/datatypennen3610/v20200601",
+        "Objecten": "www.kadaster.nl/schemas/lvbag/imbag/objecten/v20200601",
+        "gml": "http://www.opengis.net/gml/3.2",
+        "Historie": "www.kadaster.nl/schemas/lvbag/imbag/historie/v20200601",
+        "Objecten-ref": "www.kadaster.nl/schemas/lvbag/imbag/objecten-ref/v20200601",
+        "ml": "http://www.kadaster.nl/schemas/mutatielevering-generiek/1.0",
+        "mlm": "http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-mutaties-lvc/v20200601",
+        "nen5825": "www.kadaster.nl/schemas/lvbag/imbag/nen5825/v20200601",
+        "KenmerkInOnderzoek": "www.kadaster.nl/schemas/lvbag/imbag/kenmerkinonderzoek/v20200601",
+        "selecties-extract": "http://www.kadaster.nl/schemas/lvbag/extract-selecties/v20200601",
+        "sl-bag-extract": "http://www.kadaster.nl/schemas/lvbag/extract-deelbestand-lvc/v20200601",
+        "sl": "http://www.kadaster.nl/schemas/standlevering-generiek/1.0",
+        "xsi": "http://www.w3.org/2001/XMLSchema-instance",
+        "xs": "http://www.w3.org/2001/XMLSchema",
     }
 
     id_path = "Objecten:identificatie"
@@ -183,30 +183,30 @@ class BagExtractDatastore(Datastore):
         self._last_update = last_update
 
         self._check_config()
-        self._gemeente = read_config.get('gemeentes')[0]  # For now we only support Weesp
+        self._gemeente = read_config.get("gemeentes")[0]  # For now we only support Weesp
 
-        xml_object = self.read_config.get('xml_object')
+        xml_object = self.read_config.get("xml_object")
         self.full_xml_path = f"./sl:standBestand/sl:stand/sl-bag-extract:bagObject/Objecten:{xml_object}"
         self.mutation_xml_paths = [
-            # Ordering matters. First 'toevoeging', then 'wijziging'
+            # Ordering matters. First "toevoeging", then "wijziging"
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:toevoeging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:wijziging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
         ]
 
-        self.mode = self.read_config['mode']
+        self.mode = self.read_config["mode"]
         assert isinstance(self.mode, ImportMode), "mode should be of type ImportMode"
 
     def _check_config(self):
-        for key in ('object_type', 'xml_object', 'mode', 'gemeentes', 'download_location'):
+        for key in ("object_type", "xml_object", "mode", "gemeentes", "download_location"):
             if not self.read_config.get(key):
                 raise GOBException(f"Missing {key} in read_config")
 
-        if self.read_config['mode'] == ImportMode.MUTATIONS:
+        if self.read_config["mode"] == ImportMode.MUTATIONS:
             if not self.read_config.get("last_full_download_location"):
                 raise GOBException("Missing last_full_download_location in read_config")
 
     def _extract_full_file(self, afgifte: Afgifte) -> Iterator[Path]:
-        object_type = self.read_config['object_type']
+        object_type = self.read_config["object_type"]
         gemeente = afgifte.get_gemeente()
         datestr = afgifte.get_date().strftime("%d%m%Y")
         nested_zip_files = [f"{gemeente}GEM{datestr}.zip", f"{gemeente}{object_type}{datestr}.zip"]
@@ -215,18 +215,18 @@ class BagExtractDatastore(Datastore):
         dst_dir = Path(self.tmp_path, ImportMode.FULL.value)
 
         _extract_nested_zip(src_file, nested_zip_files, dst_dir)
-        return dst_dir.glob('*.xml')
+        return dst_dir.glob("*.xml")
 
     def _extract_mutations_file(self, afgifte: Afgifte) -> Iterator[Path]:
         src_file = Path(self.tmp_path, afgifte.Bestandsnaam)
         dst_dir = Path(self.tmp_path, ImportMode.MUTATIONS.value)
 
         _extract_nested_zip(src_file, [f"9999MUT{afgifte.get_daterange()}.zip"], dst_dir)
-        return dst_dir.glob('*.xml')
+        return dst_dir.glob("*.xml")
 
     def _get_mutation_ids(self) -> Iterator[str]:
         """Get mutation ids."""
-        afgifte = self.read_config['last_full_download_location']
+        afgifte = self.read_config["last_full_download_location"]
         ProductStore.download(afgifte, destination=self.tmp_path)
 
         for file in self._extract_full_file(afgifte):
@@ -236,7 +236,7 @@ class BagExtractDatastore(Datastore):
                 yield elm.text
 
     def connect(self):
-        afgifte = self.read_config['download_location']
+        afgifte = self.read_config["download_location"]
         ProductStore.download(afgifte, destination=self.tmp_path)
 
         if self.mode == ImportMode.FULL:
@@ -255,7 +255,7 @@ class BagExtractDatastore(Datastore):
     def _get_elements_mutations(self, xmlroot):
         assert self.ids is not None, "self.ids should be initialised"
 
-        gemeentes = self.read_config.get('gemeentes', [])
+        gemeentes = self.read_config.get("gemeentes", [])
 
         # Collect mutations in dict. Only keep last mutation for an object.
         # This is why mutation_xml_paths should first visit additions, then modifications
@@ -280,10 +280,10 @@ class BagExtractDatastore(Datastore):
 
     def _pack_object(self, row, object_id) -> dict:
         return {
-            'gemeente': self._gemeente,
-            'last_update': self._last_update,
-            'object_id': object_id,
-            'object': row,
+            "gemeente": self._gemeente,
+            "last_update": self._last_update,
+            "object_id": object_id,
+            "object": row,
         }
 
     def query(self, query, **kwargs):
@@ -301,5 +301,5 @@ class BagExtractDatastore(Datastore):
                 identificatie = identificatie.text.strip() if identificatie is not None else None
                 volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
 
-                object_id = identificatie if volgnummer is None else f'{identificatie}.{volgnummer.text.strip()}'
+                object_id = identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
                 yield self._pack_object(row, object_id)

@@ -42,16 +42,16 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
     logger.info("Have mutations import. Determine next step")
     with DatabaseSession() as session:
         repo = MutationImportRepository(session)
-        last_import = repo.get_last(dataset.get('catalogue'), dataset.get('entity'), dataset.get('source', {})
-                                    .get('application'))
+        last_import = repo.get_last(dataset.get("catalogue"), dataset.get("entity"), dataset.get("source", {})
+                                    .get("application"))
         try:
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:
             logger.info(f"Nothing to do: {e}")
             _log_no_more_left(last_import)
             msg = {
-                'header': msg.get('header', {}),
-                'summary': logger.get_summary(),
+                "header": msg.get("header", {}),
+                "summary": logger.get_summary(),
             }
             return msg, False
 
@@ -94,11 +94,11 @@ def handle_bag_extract_message(msg: dict) -> dict:
         collection=msg["header"]["collection"],
         catalogue=msg["header"]["catalogue"]
     )
-    msg['header'] |= {
-        'source': dataset['source']['name'],
-        'application': dataset['source']['application'],
-        'catalogue': dataset['catalogue'],
-        'entity': dataset['entity'],
+    msg["header"] |= {
+        "source": dataset["source"]["name"],
+        "application": dataset["source"]["application"],
+        "catalogue": dataset["catalogue"],
+        "entity": dataset["entity"],
     }
     logger.configure(msg, "BAG EXTRACT")
     mutations_handler = MutationsHandler(dataset)
@@ -106,7 +106,7 @@ def handle_bag_extract_message(msg: dict) -> dict:
     while next_mutation:
         msg, next_mutation = _handle_mutation_import(msg, dataset, mutations_handler)
         if next_mutation:
-            logger.info('Next mutation is available, keep processing')
+            logger.info("Next mutation is available, keep processing")
     logger.info("This was the last file to be exctracted for now.")
     return msg
 
@@ -124,12 +124,12 @@ def _validate_message(msg: Dict[str, Any]) -> None:
            }
         }
 
-    Where 'application' is optional when there is only one known application for given catalogue and collection
+    Where "application" is optional when there is only one known application for given catalogue and collection
 
     :param msg: A message containing a catalogue and collection
     :raises: GOBException when the message does not validate.
     """
-    required_keys = ['catalogue', 'collection']
+    required_keys = ["catalogue", "collection"]
     if "header" not in msg:
         raise GOBException("No 'header' key in message.")
 
@@ -141,12 +141,12 @@ def _validate_message(msg: Dict[str, Any]) -> None:
 
 
 SERVICEDEFINITION = {
-    'bag_extract_request': {
-        'queue': BAG_EXTRACT_QUEUE,
-        'handler': handle_bag_extract_message,
-        'report': {
-            'exchange': WORKFLOW_EXCHANGE,
-            'key': BAG_EXTRACT_RESULT_KEY,
+    "bag_extract_request": {
+        "queue": BAG_EXTRACT_QUEUE,
+        "handler": handle_bag_extract_message,
+        "report": {
+            "exchange": WORKFLOW_EXCHANGE,
+            "key": BAG_EXTRACT_RESULT_KEY,
         },
     },
 }
@@ -159,9 +159,9 @@ def init():
     else:
         for collection in sys.argv[1:]:
             msg = {
-                'header': {
-                    'catalogue': 'bag',
-                    'collection': collection,
+                "header": {
+                    "catalogue": "bag",
+                    "collection": collection,
                 }
             }
             handle_bag_extract_message(msg)

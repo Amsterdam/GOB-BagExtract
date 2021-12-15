@@ -44,7 +44,7 @@ class Afgifte(NamedTuple):
 
     def get_daterange(self) -> Optional[str]:
         """Returns parsed daterange as string from filename."""
-        if m := re.match(r'^BAGNLDM-(\d{8}-\d{8}).zip$', self.Bestandsnaam):
+        if m := re.match(r"^BAGNLDM-(\d{8}-\d{8}).zip$", self.Bestandsnaam):
             return m.group(1)
         raise GOBException(f"Could not parse daterange from filename. Unknown format: '{self.Bestandsnaam}'")
 

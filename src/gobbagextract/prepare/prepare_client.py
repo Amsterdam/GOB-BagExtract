@@ -32,36 +32,36 @@ def connect(func):
 
 class PrepareClient:
     columns_def = [
-            {'name': 'object_id', 'type': 'string'},
-            {'name': 'gemeente', 'type': 'string'},
-            {'name': 'last_update', 'type': 'datetime'},
-            {'name': 'object', 'type': 'JSON'},
+            {"name": "object_id", "type": "string"},
+            {"name": "gemeente", "type": "string"},
+            {"name": "last_update", "type": "datetime"},
+            {"name": "object", "type": "JSON"},
     ]
 
     def __init__(self, msg: dict, dataset, mode: ImportMode, last_date: dt.date):
-        self.header = msg.get('header', {})
+        self.header = msg.get("header", {})
         self.dataset = dataset
-        self.entity = dataset['entity']
-        self.source_app = self.dataset.get('source', {}).get('application')
+        self.entity = dataset["entity"]
+        self.source_app = self.dataset.get("source", {}).get("application")
         self._last_date = last_date
 
-        read_config = dataset.get('source', {}).get('read_config', {})
-        read_config['mode'] = mode
+        read_config = dataset.get("source", {}).get("read_config", {})
+        read_config["mode"] = mode
         self._data_src = BagExtractDatastore(dict(), read_config, last_date)
 
-        data_store_config = DATABASE_CONFIG | {'type': TYPE_POSTGRES}
-        data_store_config.pop('drivername')
+        data_store_config = DATABASE_CONFIG | {"type": TYPE_POSTGRES}
+        data_store_config.pop("drivername")
         self._data_dst = PostgresDatastoreExt(data_store_config)
 
         self._config = {
-            'destination_table': {
-                'name': '_'.join((dataset['catalogue'], dataset['entity'])),
-                'columns': self.columns_def,
+            "destination_table": {
+                "name": "_".join((dataset["catalogue"], dataset["entity"])),
+                "columns": self.columns_def,
             },
-            'ignore_missing': False,
-            'catalogue': dataset['catalogue'],
-            'entity': dataset['entity'],
-            'gemeente': read_config.get('gemeente'),
+            "ignore_missing": False,
+            "catalogue": dataset["catalogue"],
+            "entity": dataset["entity"],
+            "gemeente": read_config.get("gemeente"),
         }
 
     @connect
@@ -81,10 +81,10 @@ class PrepareClient:
         """
         header = {
             **self.header,
-            "version": self.dataset['version'],
+            "version": self.dataset["version"],
             "timestamp": dt.datetime.utcnow().isoformat()
         }
-        summary = {'num_records': nr_rows}
+        summary = {"num_records": nr_rows}
 
         # Log end of import process
         logger.info(

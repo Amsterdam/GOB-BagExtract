@@ -58,9 +58,9 @@ class TestToPostgresSelector(TestCase):
         table = "some_table"
         values = [[2, 4, 5], [2, 2, 0], [4, 4, 3]]
         columns = [
-            {'type': 'typ1', 'name': 'naam1'},
-            {'type': 'typ2', 'name': 'naam2'},
-            {'type': 'typ3', 'name': 'naam3'}
+            {"type": "typ1", "name": "naam1"},
+            {"type": "typ2", "name": "naam2"},
+            {"type": "typ3", "name": "naam3"}
         ]
         self.selector._write_rows(table, values, columns)
-        self.selector._dst_datastore.write_rows.assert_called_with(table, values, columns=['naam1', 'naam2', 'naam3'])
+        self.selector._dst_datastore.write_rows.assert_called_with(table, values, columns=["naam1", "naam2", "naam3"])

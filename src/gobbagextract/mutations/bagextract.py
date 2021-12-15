@@ -23,8 +23,8 @@ class BagExtractMutationsHandler:
 
     @staticmethod
     def _get_gemeente(dataset: dict) -> str:
-        read_config = dataset.get('source', {}).get('read_config', {})
-        return read_config.get('gemeentes')[0]
+        read_config = dataset.get("source", {}).get("read_config", {})
+        return read_config.get("gemeentes")[0]
 
     @staticmethod
     def _datestr(date: dt.date) -> str:
@@ -44,7 +44,8 @@ class BagExtractMutationsHandler:
     def restart_import(self, last_import: MutationImport) -> tuple[ImportMode, Afgifte, dt.date]:
         mode = last_import.mode
         afgifte = Afgifte(Bestandsnaam=last_import.filename)
-        date, gemeente = afgifte.get_date(), afgifte.get_gemeente()
+        date = afgifte.get_date()
+        gemeente = afgifte.get_gemeente()
 
         if mode == ImportMode.FULL.value:
             ret = self.get_full(date, gemeente)
@@ -68,9 +69,9 @@ class BagExtractMutationsHandler:
         date = self._last_full_import_date(date)
 
         kwargs = {
-            'start_date': (date - relativedelta(month=1)),
-            'end_date': date,
-            'artikelnummer': ArtikelNummer.VOL_GEM
+            "start_date": (date - relativedelta(month=1)),
+            "end_date": date,
+            "artikelnummer": ArtikelNummer.VOL_GEM
         }
 
         for afgifte in self.SoapHandler(**kwargs).iter_afgiftes():
@@ -82,9 +83,9 @@ class BagExtractMutationsHandler:
 
     def get_daily_mutations(self, date: dt.date) -> tuple[ImportMode, Afgifte]:
         kwargs = {
-            'start_date': (date - dt.timedelta(days=1)),
-            'end_date': date,
-            'artikelnummer': ArtikelNummer.MUT_DAG_NLD
+            "start_date": (date - dt.timedelta(days=1)),
+            "end_date": date,
+            "artikelnummer": ArtikelNummer.MUT_DAG_NLD
         }
 
         for afgifte in self.SoapHandler(**kwargs).iter_afgiftes():
@@ -116,20 +117,20 @@ class BagExtractMutationsHandler:
             mode, afgifte, date = self.start_next(last_import, gemeente)
 
         mutation_import = MutationImport()
-        mutation_import.catalogue = dataset['catalogue']
-        mutation_import.collection = dataset['entity']
-        mutation_import.application = dataset['source']['application']
+        mutation_import.catalogue = dataset["catalogue"]
+        mutation_import.collection = dataset["entity"]
+        mutation_import.application = dataset["source"]["application"]
         mutation_import.mode = mode.value
         mutation_import.filename = afgifte.Bestandsnaam
 
-        update_config = {'download_location': afgifte}
+        update_config = {"download_location": afgifte}
 
         if mode == ImportMode.MUTATIONS:
             # The BAGExtract Datastore needs the last full download location as well to determine the ID's to import
-            update_config['last_full_download_location'] = self.get_full(date, gemeente)[1]
+            update_config["last_full_download_location"] = self.get_full(date, gemeente)[1]
 
         # Update read_config for importer
-        dataset['source']['read_config'] |= update_config
+        dataset["source"]["read_config"] |= update_config
 
         return mutation_import, dataset, date
 
