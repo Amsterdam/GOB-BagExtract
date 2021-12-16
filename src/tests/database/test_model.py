@@ -16,8 +16,8 @@ class MutationImportTest(TestCase):
 
     def test_repr(self):
         mi = MutationImport()
-        mi.catalogue = 'CAT'
-        mi.collection = 'COLL'
-        mi.filename = 'FNAME'
+        mi.catalogue = "CAT"
+        mi.collection = "COLL"
+        mi.filename = "FNAME"
 
         self.assertEqual("<MutationImport CAT COLL (FNAME)>", str(mi))

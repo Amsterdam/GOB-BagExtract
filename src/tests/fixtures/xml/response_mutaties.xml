@@ -1,0 +1,28 @@
+<!-- example: GET https://service10.kadaster.nl/gds2/download/productstore/3f9be731-1ad5-4be0-8250-49ae1b2acb48 -->
+
+<SOAP-ENV:Envelope xmlns:SOAP-ENV="http://schemas.xmlsoap.org/soap/envelope/">
+    <SOAP-ENV:Header/>
+    <SOAP-ENV:Body>
+        <ns3:BestandenlijstOpvragenResponse
+                xmlns:ns2="http://www.kadaster.nl/schemas/generiek/procesresultaat/v20110922"
+                xmlns:ns3="http://www.kadaster.nl/schemas/gds2/make2stock/v20201201">
+            <ns2:ProcesVerwerking>
+                <ns2:ProcesVerwerkingCode>1</ns2:ProcesVerwerkingCode>
+                <ns2:SeverityCode>INFO</ns2:SeverityCode>
+            </ns2:ProcesVerwerking>
+            <ns3:BaseURLSet type="login">https://service10.kadaster.nl/gds2/download/productstore</ns3:BaseURLSet>
+            <ns3:BaseURLSet type="certificaat">https://service30.kadaster.nl/gds2/download/productstore</ns3:BaseURLSet>
+            <ns3:BaseURLSet type="diginetwerk">https://service30.diginetwerk.kadaster.nl/gds2/download/productstore
+            </ns3:BaseURLSet>
+            <ns3:BestandAfgiftes>
+                <ns3:AfgifteID>02b9b15c-3051-4af3-8714-9a3325bf69fa</ns3:AfgifteID>
+                <ns3:Afgiftereferentie>BAGNLDM-13112021-14112021.zip</ns3:Afgiftereferentie>
+                <ns3:Bestandsnaam>BAGNLDM-13112021-14112021.zip</ns3:Bestandsnaam>
+                <ns3:artikelnummer>2532</ns3:artikelnummer>
+                <ns3:DatumAanmelding>2021-05-08T14:13:23.669+02:00</ns3:DatumAanmelding>
+                <ns3:BeschikbaarTot>2021-11-08T14:13:23+01:00</ns3:BeschikbaarTot>
+            </ns3:BestandAfgiftes>
+            <ns3:MeerAfgiftesbeschikbaar>false</ns3:MeerAfgiftesbeschikbaar>
+        </ns3:BestandenlijstOpvragenResponse>
+    </SOAP-ENV:Body>
+</SOAP-ENV:Envelope>

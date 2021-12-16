@@ -112,7 +112,7 @@ class TestStorage(TestCase):
     def test_connect(self, mock_create, mock_migrate, mock_url):
         result = connect()
 
-        mock_create.assert_called_with(mock_url.return_value, connect_args={'sslmode': 'require'})
+        mock_create.assert_called_with(mock_url.return_value, connect_args={"sslmode": "require"})
         mock_migrate.assert_called()
         self.assertEqual(result, True)
         self.assertEqual(is_connected(), True)
@@ -181,8 +181,8 @@ class TestStorage(TestCase):
         self.assertEqual(result, True)
 
     @mock.patch("gobbagextract.database.connection.alembic.config")
-    @mock.patch('gobbagextract.database.connection.alembic.script')
-    @mock.patch('gobbagextract.database.connection.migration')
+    @mock.patch("gobbagextract.database.connection.alembic.script")
+    @mock.patch("gobbagextract.database.connection.migration")
     def test_migrate_storage(self, mock_migration, mock_script, mock_config):
         context = mock.MagicMock()
         context.get_current_revision.return_value = "revision 1"
@@ -198,8 +198,8 @@ class TestStorage(TestCase):
         mock_config.main.assert_called()
 
     @mock.patch("gobbagextract.database.connection.alembic.config")
-    @mock.patch('gobbagextract.database.connection.alembic.script')
-    @mock.patch('gobbagextract.database.connection.migration')
+    @mock.patch("gobbagextract.database.connection.alembic.script")
+    @mock.patch("gobbagextract.database.connection.migration")
     def test_migrate_storage_up_to_date(self, mock_migration, mock_script, mock_config):
         context = mock.MagicMock()
         context.get_current_revision.return_value = "revision 2"
@@ -215,8 +215,8 @@ class TestStorage(TestCase):
         mock_config.main.assert_not_called()
 
     @mock.patch("gobbagextract.database.connection.alembic.config")
-    @mock.patch('gobbagextract.database.connection.alembic.script')
-    @mock.patch('gobbagextract.database.connection.migration')
+    @mock.patch("gobbagextract.database.connection.alembic.script")
+    @mock.patch("gobbagextract.database.connection.migration")
     def test_migrate_storage_exception(self, mock_migration, mock_script, mock_config):
         context = mock.MagicMock()
         context.get_current_revision.return_value = "revision 1"

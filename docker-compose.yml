@@ -12,6 +12,11 @@ services:
       SECURE_PASSWORD: insecure
       GOB_BAGEXTRACT_DATABASE_HOST: bagextract_database
       GOB_BAGEXTRACT_DATABASE_PORT: 5432
+      KADASTER_PRODUCTSTORE_AFGIFTE_URL:
+      KADASTER_PRODUCTSTORE_DOWNLOAD_URL:
+      KADASTER_PRODUCTSTORE_CERT:
+      KADASTER_PRODUCTSTORE_KEY:
+      REQUESTS_CA_BUNDLE:
     env_file: .env
     volumes:
       - gob-volume:/app/shared
