@@ -22,7 +22,7 @@ class MutationsHandler:
 
     @staticmethod
     def get_application(dataset: dict):
-        return dataset.get('source', {}).get('application')
+        return dataset.get("source", {}).get("application")
 
     def get_next_import(self, last_import: MutationImport) -> Tuple[MutationImport, dict, datetime.date]:
         return self.handler.handle_import(last_import, self.dataset)

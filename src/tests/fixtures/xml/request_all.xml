@@ -1,0 +1,24 @@
+<!--Artikelnummer Omschrijving -->
+<!--2529 BAG 2.0 dagelijks mutaties heel Nederland -->
+<!--2531 BAG 2.0 maandmutaties Gemeente  -->
+<!--2532 BAG 2.0 maandmutaties heel Nederland -->
+<!--2535 BAG 2.0 Extract abo. volledig Extract Gem Colle -->
+<!--2536 BAG 2.0 Extract abo. volledig Extract heel Nederland -->
+
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/"
+                  xmlns:v20="http://www.kadaster.nl/schemas/gds2/make2stock/v20201201">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <v20:BestandenlijstOpvragenRequest>
+            <v20:Periode>
+                <v20:DatumTijdVanaf>2021-03-20T09:00:00</v20:DatumTijdVanaf>
+                <v20:DatumTijdTotEnMet>2021-06-26T12:58:34</v20:DatumTijdTotEnMet>
+            </v20:Periode>
+            <v20:Artikelnummers>2529</v20:Artikelnummers>
+            <v20:Artikelnummers>2531</v20:Artikelnummers>
+            <v20:Artikelnummers>2532</v20:Artikelnummers>
+            <v20:Artikelnummers>2535</v20:Artikelnummers>
+            <v20:Artikelnummers>2536</v20:Artikelnummers>
+        </v20:BestandenlijstOpvragenRequest>
+    </soapenv:Body>
+</soapenv:Envelope>

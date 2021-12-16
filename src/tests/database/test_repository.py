@@ -12,11 +12,11 @@ class MutationImportRepositoryTest(TestCase):
         session = MagicMock()
         repo = MutationImportRepository(session)
 
-        res = repo.get_last('cat', 'coll', 'application')
+        res = repo.get_last("cat", "coll", "application")
 
         session.assert_has_calls([
             call.query(mock_mutation_import),
-            call.query().filter_by(catalogue='cat', collection='coll', application='application'),
+            call.query().filter_by(catalogue="cat", collection="coll", application="application"),
             call.query().filter_by().order_by(mock_mutation_import.started_at.desc()),
             call.query().filter_by().order_by().first(),
         ])

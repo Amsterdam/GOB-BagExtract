@@ -9,25 +9,25 @@ class TestMutationsHandler(TestCase):
 
     def test_init(self):
         dataset = {
-            'source': {
-                'application': 'BAGExtract',
+            "source": {
+                "application": "BAGExtract",
             }
         }
 
         handler = MutationsHandler(dataset)
         self.assertEqual(dataset, handler.dataset)
-        self.assertEqual('BAGExtract', handler.application)
+        self.assertEqual("BAGExtract", handler.application)
 
         self.assertIsInstance(handler.handler, BagExtractMutationsHandler)
 
         with self.assertRaises(GOBException):
-            dataset['source']['application'] = 'SomeOther'
+            dataset["source"]["application"] = "SomeOther"
             MutationsHandler(dataset)
 
     def test_get_next_import(self):
         dataset = {
-            'source': {
-                'application': 'BAGExtract',
+            "source": {
+                "application": "BAGExtract",
             }
         }
         handler = MutationsHandler(dataset)
@@ -39,8 +39,8 @@ class TestMutationsHandler(TestCase):
 
     def test_have_next(self):
         dataset = {
-            'source': {
-                'application': 'BAGExtract',
+            "source": {
+                "application": "BAGExtract",
             }
         }
         handler = MutationsHandler(dataset)

@@ -9,7 +9,7 @@ from gobcore.exceptions import GOBException
 
 class PostgresDatastoreExt(PostgresDatastore):
 
-    def write_rows(self, table: str, rows: List[list], columns: list) -> None:
+    def write_rows(self, table: str, rows: List[list], columns: list) -> int:
         """
         Writes rows to Postgres table using the optimised execute_values function from psycopg2, which
         combines all inserts into one query.
@@ -31,3 +31,5 @@ class PostgresDatastoreExt(PostgresDatastore):
                 self.connection.commit()
         except Error as e:
             raise GOBException(f'Error writing rows to table {table}. Error: {e}')
+
+        return len(rows)

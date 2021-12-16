@@ -47,7 +47,7 @@ class TestDatabaseSession(TestCase):
         session.reset_mock()
         ds.session = session
 
-        ds.__exit__('exc type', 'exc val', 'exc tb')
+        ds.__exit__("exc type", "exc val", "exc tb")
         session.assert_has_calls([
             call.rollback(),
             call.expunge_all(),
