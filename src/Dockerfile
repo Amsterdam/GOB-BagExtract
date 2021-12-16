@@ -13,6 +13,11 @@ COPY requirements.txt /app/
 RUN LIBGDAL_VERSION=$(gdal-config --version) pip3 install --no-cache-dir -r requirements.txt
 RUN rm requirements.txt
 
+# update custom root crt
+COPY *.crt /usr/local/share/ca-certificates/extras/
+RUN chmod -R 644 /usr/local/share/ca-certificates/extras/ \
+ && update-ca-certificates
+
 # Create directory for client certs
 RUN mkdir -p /certs/gob/ && chmod -R 755 /certs
 
