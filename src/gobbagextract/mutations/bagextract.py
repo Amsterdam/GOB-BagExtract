@@ -64,9 +64,10 @@ class BagExtractMutationsHandler:
     def get_full(self, date: dt.date, gemeente: str) -> Tuple[ImportMode, Afgifte]:
         date = self._last_full_import_date(date)
 
+        # search for mutations in a 10 day window from the 15th (rollout can take up to 5 days)
         kwargs = {
-            "start_date": (date - relativedelta(month=1)),
-            "end_date": date,
+            "start_date": date - relativedelta(month=1),
+            "end_date": date + dt.timedelta(days=10),
             "artikelnummer": ArtikelNummer.VOL_GEM
         }
 
@@ -80,9 +81,10 @@ class BagExtractMutationsHandler:
         raise NothingToDo.file_not_available(self._full_filename(date, gemeente))
 
     def get_daily_mutations(self, date: dt.date) -> tuple[ImportMode, Afgifte]:
+        # search for mutations in a 3 day window (Should be available on `date`)
         kwargs = {
-            "start_date": (date - dt.timedelta(days=1)),
-            "end_date": date,
+            "start_date": date - dt.timedelta(days=1),
+            "end_date": date + dt.timedelta(days=2),
             "artikelnummer": ArtikelNummer.MUT_DAG_NLD
         }
 
