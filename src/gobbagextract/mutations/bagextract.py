@@ -81,10 +81,10 @@ class BagExtractMutationsHandler:
         raise NothingToDo.file_not_available(self._full_filename(date, gemeente))
 
     def get_daily_mutations(self, date: dt.date) -> tuple[ImportMode, Afgifte]:
-        # search for mutations in a 3 day window (Should be available on `date`)
+        # search for mutations in a 10 day window (Should be available on `date`)
         kwargs = {
             "start_date": date - dt.timedelta(days=1),
-            "end_date": date + dt.timedelta(days=2),
+            "end_date": date + dt.timedelta(days=10),
             "artikelnummer": ArtikelNummer.MUT_DAG_NLD
         }
 
