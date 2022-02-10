@@ -3,11 +3,14 @@ from collections import defaultdict
 import io
 import datetime as dt
 import re
+from enum import Enum
 
 from xml.etree import ElementTree
+from xml.etree.ElementTree import Element
+
 from osgeo import ogr
 from tempfile import TemporaryDirectory
-from typing import List, Union, Iterator, Any
+from typing import List, Union, Iterator, Any, Generator, Callable
 from zipfile import ZipFile
 from pathlib import Path
 
@@ -151,9 +154,17 @@ class ElementFormatter:
             return element.text.strip()
 
 
+class BagFileTypes(Enum):
+    """Enum describing the kind of file in the BAG zip."""
+    FULL = 0
+    MUTATIE = 1
+    FULL_IN_ONDERZOEK = 2
+    FULL_MUTATIE = 3
+
+
 class BagExtractDatastore(Datastore):
     namespaces = {
-        # We could extract namespaces from the file, but this way we're sure they won't change in the source.
+        # Make sure namespaces do not change in the data source.
         "DatatypenNEN3610": "www.kadaster.nl/schemas/lvbag/imbag/datatypennen3610/v20200601",
         "Objecten": "www.kadaster.nl/schemas/lvbag/imbag/objecten/v20200601",
         "gml": "http://www.opengis.net/gml/3.2",
@@ -186,7 +197,12 @@ class BagExtractDatastore(Datastore):
         self._gemeente = read_config.get("gemeentes")[0]  # For now we only support Weesp
 
         xml_object = self.read_config.get("xml_object")
+        # XML Paths to data which will be stored as json in the database.
+        # full_xml_path is for files named like "0457VBO15012022-000001.xml"
         self.full_xml_path = f"./sl:standBestand/sl:stand/sl-bag-extract:bagObject/Objecten:{xml_object}"
+        # full_xml_inonderzoek_path is for files named like "0457IOVBO15012022-000001"
+        #
+        self.full_xml_inonderzoek_path = f"./sl:standBestand/sl:stand/sl-bag-extract:kenmerkInOnderzoek/KenmerkInOnderzoek:Kenmerk{xml_object}InOnderzoek"  # noqa: E501
         self.mutation_xml_paths = [
             # Ordering matters. First "toevoeging", then "wijziging"
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:toevoeging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
@@ -213,8 +229,15 @@ class BagExtractDatastore(Datastore):
 
         src_file = Path(self.tmp_path, afgifte.Bestandsnaam)
         dst_dir = Path(self.tmp_path, ImportMode.FULL.value)
-
+        # Actual data
         _extract_nested_zip(src_file, nested_zip_files, dst_dir)
+
+        # Kenmerken in onderzoek per object type.
+        _extract_nested_zip(src_file, [
+            f"{gemeente}GEM{datestr}.zip",
+            f"{gemeente}InOnderzoek{datestr}.zip",
+            f"{gemeente}IO{self.read_config['object_type']}{datestr}.zip",
+        ], dst_dir)
         return dst_dir.glob("*.xml")
 
     def _extract_mutations_file(self, afgifte: Afgifte) -> Iterator[Path]:
@@ -238,7 +261,6 @@ class BagExtractDatastore(Datastore):
     def connect(self):
         afgifte = self.read_config["download_location"]
         ProductStore.download(afgifte, destination=self.tmp_path)
-
         if self.mode == ImportMode.FULL:
             self.files = sorted(self._extract_full_file(afgifte))
         else:
@@ -249,10 +271,58 @@ class BagExtractDatastore(Datastore):
         super().disconnect()
         self.tmp_dir.cleanup()
 
-    def _get_elements_full(self, xmlroot):
-        yield from xmlroot.iterfind(self.full_xml_path, self.namespaces)
+    def _determine_xml_format(self, xmlroot: Element) -> BagFileTypes:
+        """Determine what kind of file in the zip it is.
 
-    def _get_elements_mutations(self, xmlroot):
+        A full BAG zipfile contains many XML files, for verblijfsobjecten,
+        ligplaatsen and also inonderzoek XML files for each entity. Determine
+        what is the current file here.
+
+        :param xmlroot: parsed XML file.
+        :return: a BagFileType
+        """
+        if xmlroot.find(".//sl-bag-extract:kenmerkInOnderzoek", self.namespaces):
+            return BagFileTypes.FULL_IN_ONDERZOEK
+        else:
+            return BagFileTypes.FULL
+
+    def _get_elements_full(self, xmlroot: Element, xml_format: BagFileTypes) -> Generator[Element, None, None]:
+        """Get all import elements for the full bag zip.
+
+        :param xmlroot: parsed root of the xml.
+        :param xml_format: what kind of XML file it is.
+        :return: a generator which yields elements.
+        """
+        if xml_format is BagFileTypes.FULL_IN_ONDERZOEK:
+            yield from xmlroot.iterfind(self.full_xml_inonderzoek_path, self.namespaces)
+        else:
+            yield from xmlroot.iterfind(self.full_xml_path, self.namespaces)
+
+    def _get_object_id(self, element: Element, xml_format: BagFileTypes) -> str:
+        """Get the object_id for the object being processed.
+
+        The element to look for is different per entity type.
+
+        :param element: An xml element.
+        :param xml_format: what kind of XML file it is.
+        :return:
+        """
+        if xml_format is BagFileTypes.FULL_IN_ONDERZOEK:
+            id_path = f"KenmerkInOnderzoek:identificatieVan{self.read_config['xml_object']}"
+            identificatie = element.find(f".//{id_path}", self.namespaces)
+            return identificatie.text.strip()
+        else:
+            identificatie = element.find(f"./{self.id_path}", self.namespaces)
+            identificatie = identificatie.text.strip() if identificatie is not None else None
+            volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
+            return identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
+
+    def _get_elements_mutations(self, xmlroot: Element, xml_format: BagFileTypes) -> Generator[dict, None, None]:
+        """Get all important elements from the mutations XML file.
+
+        :param xmlroot: parsed root of the xml.
+        :param xml_format: what kind of XML file it is.
+        """
         assert self.ids is not None, "self.ids should be initialised"
 
         gemeentes = self.read_config.get("gemeentes", [])
@@ -261,7 +331,6 @@ class BagExtractDatastore(Datastore):
         # This is why mutation_xml_paths should first visit additions, then modifications
         mutations = {}
         for path in self.mutation_xml_paths:
-
             for element in xmlroot.iterfind(path, self.namespaces):
                 identificatie = element.find(f"./{self.id_path}", self.namespaces)
                 identificatie = identificatie.text.strip() if identificatie is not None else None
@@ -286,20 +355,21 @@ class BagExtractDatastore(Datastore):
             "object": row,
         }
 
-    def query(self, query, **kwargs):
-        # query arg is ignored
+    def query(self, query, **kwargs) -> Generator[dict, None, None]:
+        """Yield XML values from 'sl:stand' as a json dictionary.
 
-        get_elements_fn = self._get_elements_full if self.mode == ImportMode.FULL else self._get_elements_mutations
+        :param query: Ignored
+        :param kwargs: Ignored kwargs
+        """
+        get_elements_fn: Callable[[Element], Generator[Element, None, None]]
+        get_elements_fn = self._get_elements_full if self.mode == ImportMode.FULL \
+            else self._get_elements_mutations
 
         for file in self.files:
             tree = ElementTree.parse(file)
-
-            for element in get_elements_fn(tree.getroot()):
+            xmlroot = tree.getroot()
+            xml_format = self._determine_xml_format(xmlroot)
+            for element in get_elements_fn(xmlroot, xml_format):
                 row = ElementFormatter(element).get_dict()
-
-                identificatie = element.find(f"./{self.id_path}", self.namespaces)
-                identificatie = identificatie.text.strip() if identificatie is not None else None
-                volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
-
-                object_id = identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
+                object_id = self._get_object_id(element=element, xml_format=xml_format)
                 yield self._pack_object(row, object_id)

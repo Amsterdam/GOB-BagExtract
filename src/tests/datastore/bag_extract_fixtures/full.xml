@@ -21,7 +21,7 @@
             </selecties-extract:Gebied-GEM>
         </selecties-extract:Gebied-Registratief>
         <selecties-extract:LVC-Extract>
-            <selecties-extract:StandTechnischeDatum>2020-11-15</selecties-extract:StandTechnischeDatum>
+            <selecties-extract:StandTechnischeDatum>2022-01-15</selecties-extract:StandTechnischeDatum>
         </selecties-extract:LVC-Extract>
     </sl-bag-extract:bagInfo>
     <sl:standBestand>
@@ -37,52 +37,41 @@
             <sl-bag-extract:bagObject>
                 <Objecten:Verblijfsobject>
                     <Objecten:heeftAlsHoofdadres>
-                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">hoofdA
-                        </Objecten-ref:NummeraanduidingRef>
+                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">0424200000018004</Objecten-ref:NummeraanduidingRef>
                     </Objecten:heeftAlsHoofdadres>
                     <Objecten:voorkomen>
                         <Historie:Voorkomen>
                             <Historie:voorkomenidentificatie>1</Historie:voorkomenidentificatie>
-                            <Historie:beginGeldigheid>2010-08-31</Historie:beginGeldigheid>
-                            <Historie:tijdstipRegistratie>2010-11-15T13:22:03.000</Historie:tijdstipRegistratie>
+                            <Historie:beginGeldigheid>1977-07-08</Historie:beginGeldigheid>
+                            <Historie:eindGeldigheid>2017-10-10</Historie:eindGeldigheid>
+                            <Historie:tijdstipRegistratie>2010-11-15T13:24:58.000</Historie:tijdstipRegistratie>
+                            <Historie:eindRegistratie>2017-11-06T11:28:27.000</Historie:eindRegistratie>
                             <Historie:BeschikbaarLV>
-                                <Historie:tijdstipRegistratieLV>
-                                    2010-11-15T13:31:10.557
-                                </Historie:tijdstipRegistratieLV>
+                                <Historie:tijdstipRegistratieLV>2010-11-15T13:31:21.793</Historie:tijdstipRegistratieLV>
+                                <Historie:tijdstipEindRegistratieLV>2017-11-06T11:31:11.351</Historie:tijdstipEindRegistratieLV>
                             </Historie:BeschikbaarLV>
                         </Historie:Voorkomen>
                     </Objecten:voorkomen>
-                    <Objecten:heeftAlsNevenadres>
-                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
-                            nevenA
-                        </Objecten-ref:NummeraanduidingRef>
-                    </Objecten:heeftAlsNevenadres>
-                    <Objecten:heeftAlsNevenadres>
-                        <Objecten-ref:NummeraanduidingRef domein="NL.IMBAG.Nummeraanduiding">
-                            nevenB
-                        </Objecten-ref:NummeraanduidingRef>
-                    </Objecten:heeftAlsNevenadres>
-                    <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">votA</Objecten:identificatie>
+                    <Objecten:identificatie domein="NL.IMBAG.Verblijfsobject">0424010000001635</Objecten:identificatie>
                     <Objecten:geometrie>
                         <Objecten:punt>
                             <gml:Point srsName="urn:ogc:def:crs:EPSG::28992" srsDimension="3">
-                                <gml:pos>131419.0 482833.0 0.0</gml:pos>
+                                <gml:pos>132337.0 481363.0 0.0</gml:pos>
                             </gml:Point>
                         </Objecten:punt>
                     </Objecten:geometrie>
                     <Objecten:gebruiksdoel>woonfunctie</Objecten:gebruiksdoel>
                     <Objecten:gebruiksdoel>industriefunctie</Objecten:gebruiksdoel>
-                    <Objecten:gebruiksdoel>kantoorfunctie</Objecten:gebruiksdoel>
-                    <Objecten:oppervlakte>209494</Objecten:oppervlakte>
+                    <Objecten:oppervlakte>122</Objecten:oppervlakte>
                     <Objecten:status>Verblijfsobject in gebruik</Objecten:status>
                     <Objecten:geconstateerd>N</Objecten:geconstateerd>
-                    <Objecten:documentdatum>1900-01-01</Objecten:documentdatum>
-                    <Objecten:documentnummer>docnr</Objecten:documentnummer>
+                    <Objecten:documentdatum>1977-07-08</Objecten:documentdatum>
+                    <Objecten:documentnummer>BVG-77-35/I</Objecten:documentnummer>
                     <Objecten:maaktDeelUitVan>
-                        <Objecten-ref:PandRef domein="NL.IMBAG.Pand">pndA</Objecten-ref:PandRef>
+                        <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0424100000001609</Objecten-ref:PandRef>
                     </Objecten:maaktDeelUitVan>
                     <Objecten:maaktDeelUitVan>
-                        <Objecten-ref:PandRef domein="NL.IMBAG.Pand">pndB</Objecten-ref:PandRef>
+                        <Objecten-ref:PandRef domein="NL.IMBAG.Pand">0424100000001610</Objecten-ref:PandRef>
                     </Objecten:maaktDeelUitVan>
                 </Objecten:Verblijfsobject>
             </sl-bag-extract:bagObject>

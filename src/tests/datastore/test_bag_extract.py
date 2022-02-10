@@ -121,8 +121,8 @@ class TestBagExtractDatastore(TestCase):
             res = ds._extract_full_file(mock_afgifte)
 
         mock_extract_zip.assert_called_with(
-            Path("/tmp_dir_name/BAGGEM1234L-15122021.zip"),
-            ["1234GEM15122021.zip", "1234OBJT15122021.zip"],
+            Path('/tmp_dir_name/BAGGEM1234L-15122021.zip'),
+            ['1234GEM15122021.zip', '1234InOnderzoek15122021.zip', '1234IOOBJT15122021.zip'],
             Path("/tmp_dir_name/full"),
         )
         self.assertEqual(files, res)
@@ -197,11 +197,7 @@ class TestBagExtractDatastore(TestCase):
         ds.tmp_dir.cleanup.assert_called_once()
 
     def test_query_full(self):
-        """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
-
-        :return:
-        """
-
+        """Tests query if it it picks up full xml files."""
         read_config = {
             "object_type": "VBO",
             "xml_object": "Verblijfsobject",
@@ -217,21 +213,59 @@ class TestBagExtractDatastore(TestCase):
         pprint.pprint(res)
 
         expected = {
-            "documentdatum": "1900-01-01",
-            "documentnummer": "docnr",
-            "gebruiksdoel": ["woonfunctie", "industriefunctie", "kantoorfunctie"],
+            "documentdatum": "1977-07-08",
+            "documentnummer": "BVG-77-35/I",
+            "gebruiksdoel": ["woonfunctie", "industriefunctie"],
             "geconstateerd": "N",
-            "geometrie/punt": "POINT (131419 482833)",  # GML to WKT, and 3D to 2D
-            "heeftAlsHoofdadres/NummeraanduidingRef": "hoofdA",  # returned as single value
-            "heeftAlsNevenadres/NummeraanduidingRef": ["nevenA", "nevenB"],  # returned as list
-            "identificatie": "votA",
-            "maaktDeelUitVan/PandRef": ["pndA", "pndB"],
-            "oppervlakte": "209494",
+            "geometrie/punt": "POINT (132337 481363)",
+            "heeftAlsHoofdadres/NummeraanduidingRef": "0424200000018004",
+            "identificatie": "0424010000001635",
+            "maaktDeelUitVan/PandRef": [
+                "0424100000001609", "0424100000001610"
+            ],
+            "oppervlakte": "122",
             "status": "Verblijfsobject in gebruik",
-            "voorkomen/Voorkomen/BeschikbaarLV/tijdstipRegistratieLV": "2010-11-15T13:31:10.557",
-            "voorkomen/Voorkomen/beginGeldigheid": "2010-08-31",
-            "voorkomen/Voorkomen/tijdstipRegistratie": "2010-11-15T13:22:03.000",
+            "voorkomen/Voorkomen/BeschikbaarLV/tijdstipEindRegistratieLV": "2017-11-06T11:31:11.351",
+            "voorkomen/Voorkomen/BeschikbaarLV/tijdstipRegistratieLV": "2010-11-15T13:31:21.793",
+            "voorkomen/Voorkomen/beginGeldigheid": "1977-07-08",
+            "voorkomen/Voorkomen/eindGeldigheid": "2017-10-10",
+            "voorkomen/Voorkomen/eindRegistratie": "2017-11-06T11:28:27.000",
+            "voorkomen/Voorkomen/tijdstipRegistratie": "2010-11-15T13:24:58.000",
             "voorkomen/Voorkomen/voorkomenidentificatie": "1"
+        }
+
+        self.assertEqual(len(res), 1)
+        self.assertEqual(date_now, res[0]["last_update"])
+        self.assertEqual(expected, res[0]["object"])
+
+    def test_query_inonderzoek(self):
+        """Tests if query picks up inonderzoek xmls correctly."""
+        read_config = {
+            "object_type": "VBO",
+            "xml_object": "Verblijfsobject",
+            "mode": ImportMode.FULL,
+            "gemeentes": ["0457"],
+            "download_location": "the location",
+        }
+        date_now = datetime.datetime.now().date()
+        ds = BagExtractDatastore({}, read_config, date_now)
+        ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "full_inonderzoek.xml")]
+        res = list(ds.query(None))
+        self.assertEqual(len(res), 1)
+        pprint.pprint(res)
+
+        expected = {
+            'kenmerk': 'oppervlakte',
+            'identificatieVanVerblijfsobject': '0457010000000455',
+            'inOnderzoek': 'J',
+            'documentdatum': '1987-06-01',
+            'documentnummer': 'BP-1987-33',
+            'historieInOnderzoek/HistorieInOnderzoek/tijdstipRegistratie': '2010-11-26T08:20:55.000',
+            'historieInOnderzoek/HistorieInOnderzoek/eindRegistratie': '2011-03-21T14:34:44.000',
+            'historieInOnderzoek/HistorieInOnderzoek/beginGeldigheid': '1987-06-01',
+            'historieInOnderzoek/HistorieInOnderzoek/eindGeldigheid': '2011-03-21',
+            'historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipRegistratieLV': '2010-11-26T08:31:36.223',
+            'historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipEindRegistratieLV': '2011-03-21T15:01:30.228'
         }
 
         self.assertEqual(len(res), 1)

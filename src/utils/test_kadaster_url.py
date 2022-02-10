@@ -9,10 +9,10 @@ os.environ['KADASTER_PRODUCTSTORE_CERT'] = ''
 os.environ['KADASTER_PRODUCTSTORE_KEY'] = ''
 os.environ['REQUESTS_CA_BUNDLE'] = 'ca-certificates.crt'
 
-from gobbagextract.mutations.afgifte import Afgifte
-from gobbagextract.mutations.productstore import ProductStore
-from gobbagextract.mutations.soap import BagSoapHandler
-from gobbagextract.config import ArtikelNummer
+from gobbagextract.mutations.afgifte import Afgifte  # noqa: E402
+from gobbagextract.mutations.productstore import ProductStore  # noqa: E402
+from gobbagextract.mutations.soap import BagSoapHandler  # noqa: E402
+from gobbagextract.config import ArtikelNummer  # noqa: E402
 
 
 start = datetime.date(2021, 12, 1)
