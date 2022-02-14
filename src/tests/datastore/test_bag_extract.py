@@ -361,20 +361,18 @@ class TestBagExtractDatastore(TestCase):
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "mutations_inonderzoek.xml")]
         ds.ids = ["0458010000059153123123123"]
         res = list(ds.query(None))
-        # last update nog?
         expected = [{
             'gemeente': '0457',
             'last_update': None,
             'object': {
                 'KenmerkVerblijfsobjectInOnderzoek/documentdatum': '2022-01-17',
-                 'KenmerkVerblijfsobjectInOnderzoek/documentnummer': '2022.007225 '
-                                                                            'BAG',
-                 'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipRegistratieLV': '2022-01-19T19:05:00.739',
-                 'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/beginGeldigheid': '2022-01-17',
-                 'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/tijdstipRegistratie': '2022-01-19T18:59:32.794',
-                 'KenmerkVerblijfsobjectInOnderzoek/identificatieVanVerblijfsobject': '0935010000041035',
-                 'KenmerkVerblijfsobjectInOnderzoek/inOnderzoek': 'J',
-                 'KenmerkVerblijfsobjectInOnderzoek/kenmerk': 'gebruiksdoel'
+                'KenmerkVerblijfsobjectInOnderzoek/documentnummer': '2022.007225 BAG',
+                'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipRegistratieLV': '2022-01-19T19:05:00.739',
+                'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/beginGeldigheid': '2022-01-17',
+                'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/tijdstipRegistratie': '2022-01-19T18:59:32.794',
+                'KenmerkVerblijfsobjectInOnderzoek/identificatieVanVerblijfsobject': '0935010000041035',
+                'KenmerkVerblijfsobjectInOnderzoek/inOnderzoek': 'J',
+                'KenmerkVerblijfsobjectInOnderzoek/kenmerk': 'gebruiksdoel'
             },
             'object_id': '0935010000041035'
         }]

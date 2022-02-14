@@ -291,20 +291,7 @@ class BagExtractDatastore(Datastore):
             return BagFileTypes.MUTATIE
         else:
             # TODO: better to raise an exception, as it it might be unhandled XML data.
-            print("Determine XML format: falling back to 'FULL'")
             return BagFileTypes.FULL
-
-    def _get_elements_full(self, xmlroot: Element, xml_format: BagFileTypes) -> Generator[Element, None, None]:
-        """Get all import elements for the full bag zip.
-
-        :param xmlroot: parsed root of the xml.
-        :param xml_format: what kind of XML file it is.
-        :return: a generator which yields elements.
-        """
-        if xml_format is BagFileTypes.FULL_IN_ONDERZOEK:
-            yield from xmlroot.iterfind(self.full_xml_inonderzoek_path, self.namespaces)
-        else:
-            yield from xmlroot.iterfind(self.full_xml_path, self.namespaces)
 
     def _get_object_id(self, element: Element, xml_format: BagFileTypes) -> None | str:
         """Get the object_id for the object being processed.
@@ -339,7 +326,31 @@ class BagExtractDatastore(Datastore):
 
         raise ValueError(f"Unknown XML format: {xml_format}, can not get object id.")
 
-    def _get_elements_mutations(self, xmlroot: Element, xml_format: BagFileTypes) -> Generator[dict, None, None]:
+    def _get_elements_full(
+            self, xmlroot: Element, xml_format: BagFileTypes
+    ) -> Generator[Element, None, None]:
+        """Get all elements for the full bag zip.
+
+        :param xmlroot: parsed root of the xml.
+        :param xml_format: what kind of XML file it is.
+        :return: a generator which yields elements.
+        """
+        yield from xmlroot.iterfind(self.full_xml_path, self.namespaces)
+
+    def _get_elements_full_inonderzoek(
+            self, xmlroot: Element, xml_format: BagFileTypes
+    ) -> Generator[Element, None, None]:
+        """Get al elements which are 'in onderzoek' for the full bag zip.
+
+        :param xmlroot: parsed root of the xml.
+        :param xml_format: what kind of XML file it is.
+        :return: a generator which yields elements.
+        """
+        yield from xmlroot.iterfind(self.full_xml_inonderzoek_path, self.namespaces)
+
+    def _get_elements_mutations(
+            self, xmlroot: Element, xml_format: BagFileTypes
+    ) -> Generator[Element, None, None]:
         """Get all important elements from the mutations XML file.
 
         :param xmlroot: parsed root of the xml.
@@ -349,18 +360,25 @@ class BagExtractDatastore(Datastore):
         # Collect mutations in dict. Only keep last mutation for an object.
         # This is why mutation_xml_paths should first visit additions, then modifications
         mutations = {}
-        if xml_format is BagFileTypes.MUTATIE:
-            for path in self.mutation_xml_paths:
-                for element in xmlroot.iterfind(path, self.namespaces):
-                    object_id = self._get_object_id(element, xml_format)
-                    if object_id is not None:
-                        mutations[object_id] = element
+        for path in self.mutation_xml_paths:
+            for element in xmlroot.iterfind(path, self.namespaces):
+                object_id = self._get_object_id(element, xml_format)
+                if object_id is not None:
+                    mutations[object_id] = element
 
-            for mutation in mutations.values():
-                yield mutation
-        elif xml_format is BagFileTypes.MUTATIE_IN_ONDERZOEK:
-            for element in xmlroot.iterfind(self.mutation_xml_inonderzoek_path, self.namespaces):
-                yield element
+        for mutation in mutations.values():
+            yield mutation
+
+    def _get_elements_mutations_inonderzoek(
+            self, xmlroot: Element, xml_format: BagFileTypes
+    ) -> Generator[Element, None, None]:
+        """Get all elements which are 'in onderzoek' from the mutations XML file.
+
+        :param xmlroot: parsed root of the xml.
+        :param xml_format: what kind of XML file it is.
+        """
+        for element in xmlroot.iterfind(self.mutation_xml_inonderzoek_path, self.namespaces):
+            yield element
 
     def _pack_object(self, row, object_id) -> dict:
         return {
@@ -370,25 +388,33 @@ class BagExtractDatastore(Datastore):
             "object": row,
         }
 
+    def _parse_elements(self, xml_format: BagFileTypes) -> Callable[
+            [Element, BagFileTypes],
+            Generator[Element, None, None]
+        ]:
+        if xml_format == xml_format.FULL:
+            return self._get_elements_full
+        elif xml_format == xml_format.FULL_IN_ONDERZOEK:
+            return self._get_elements_full_inonderzoek
+        elif xml_format == xml_format.MUTATIE:
+            return self._get_elements_mutations
+        elif xml_format == xml_format.MUTATIE_IN_ONDERZOEK:
+            return self._get_elements_mutations_inonderzoek
+        else:
+            raise ValueError(f"No '_get_elements' method specified for {xml_format}")
+
     def query(self, query, **kwargs) -> Generator[dict, None, None]:
         """Yield XML values from 'sl:stand' as a json dictionary.
 
         :param query: Ignored
         :param kwargs: Ignored kwargs
         """
-        # TODO: instead of picking the element parser this way, maybe use "xml_format"
-        #     as element parser picker. Then each type of file gets it's own method.
-        get_elements_fn: Callable[
-            [Element, BagFileTypes],
-            Generator[Element, None, None]
-        ]
-        get_elements_fn = self._get_elements_full if self.mode == ImportMode.FULL \
-            else self._get_elements_mutations
-
         for file in self.files:
             tree = ElementTree.parse(file)
             xmlroot = tree.getroot()
             xml_format = self._determine_xml_format(xmlroot)
+            get_elements_fn = self._parse_elements(xml_format)
+
             for element in get_elements_fn(xmlroot, xml_format):
                 row = ElementFormatter(element).get_dict()
                 object_id = self._get_object_id(element=element, xml_format=xml_format)
