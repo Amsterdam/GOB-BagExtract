@@ -159,7 +159,7 @@ class BagFileTypes(Enum):
     FULL = 0
     MUTATIE = 1
     FULL_IN_ONDERZOEK = 2
-    FULL_MUTATIE = 3
+    MUTATIE_IN_ONDERZOEK = 3
 
 
 class BagExtractDatastore(Datastore):
@@ -201,13 +201,13 @@ class BagExtractDatastore(Datastore):
         # full_xml_path is for files named like "0457VBO15012022-000001.xml"
         self.full_xml_path = f"./sl:standBestand/sl:stand/sl-bag-extract:bagObject/Objecten:{xml_object}"
         # full_xml_inonderzoek_path is for files named like "0457IOVBO15012022-000001"
-        #
         self.full_xml_inonderzoek_path = f"./sl:standBestand/sl:stand/sl-bag-extract:kenmerkInOnderzoek/KenmerkInOnderzoek:Kenmerk{xml_object}InOnderzoek"  # noqa: E501
         self.mutation_xml_paths = [
             # Ordering matters. First "toevoeging", then "wijziging"
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:toevoeging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:wijziging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
         ]
+        self.mutation_xml_inonderzoek_path = f"./ml:mutatieBericht/ml:mutatieGroep//mlm:kenmerkInOnderzoek"
 
         self.mode = self.read_config["mode"]
         assert isinstance(self.mode, ImportMode), "mode should be of type ImportMode"
@@ -245,6 +245,8 @@ class BagExtractDatastore(Datastore):
         dst_dir = Path(self.tmp_path, ImportMode.MUTATIONS.value)
 
         _extract_nested_zip(src_file, [f"9999MUT{afgifte.get_daterange()}.zip"], dst_dir)
+        # Kenmerken in onderzoek
+        _extract_nested_zip(src_file, [f"9999IOMUT{afgifte.get_daterange()}.zip"], dst_dir)
         return dst_dir.glob("*.xml")
 
     def _get_mutation_ids(self) -> Iterator[str]:
@@ -283,7 +285,13 @@ class BagExtractDatastore(Datastore):
         """
         if xmlroot.find(".//sl-bag-extract:kenmerkInOnderzoek", self.namespaces):
             return BagFileTypes.FULL_IN_ONDERZOEK
+        elif xmlroot.find(".//ml:mutatieBericht//mlm:kenmerkInOnderzoek", self.namespaces):
+            return BagFileTypes.MUTATIE_IN_ONDERZOEK
+        elif xmlroot.find(".//ml:mutatieBericht//mlm:bagObject", self.namespaces):
+            return BagFileTypes.MUTATIE
         else:
+            # TODO: better to raise an exception, as it it might be unhandled XML data.
+            print("Determine XML format: falling back to 'FULL'")
             return BagFileTypes.FULL
 
     def _get_elements_full(self, xmlroot: Element, xml_format: BagFileTypes) -> Generator[Element, None, None]:
@@ -298,7 +306,7 @@ class BagExtractDatastore(Datastore):
         else:
             yield from xmlroot.iterfind(self.full_xml_path, self.namespaces)
 
-    def _get_object_id(self, element: Element, xml_format: BagFileTypes) -> str:
+    def _get_object_id(self, element: Element, xml_format: BagFileTypes) -> None | str:
         """Get the object_id for the object being processed.
 
         The element to look for is different per entity type.
@@ -307,15 +315,29 @@ class BagExtractDatastore(Datastore):
         :param xml_format: what kind of XML file it is.
         :return:
         """
-        if xml_format is BagFileTypes.FULL_IN_ONDERZOEK:
+        if xml_format is BagFileTypes.FULL_IN_ONDERZOEK or xml_format is BagFileTypes.MUTATIE_IN_ONDERZOEK:
             id_path = f"KenmerkInOnderzoek:identificatieVan{self.read_config['xml_object']}"
             identificatie = element.find(f".//{id_path}", self.namespaces)
             return identificatie.text.strip()
-        else:
+        elif xml_format is BagFileTypes.MUTATIE:
+            gemeentes = self.read_config.get("gemeentes", [])
+            identificatie = element.find(f"./{self.id_path}", self.namespaces)
+            identificatie = identificatie.text.strip() if identificatie is not None else None
+
+            # Filter by id, or by gemeentecode prefix (first 4 digits)
+            if identificatie and (identificatie in self.ids or identificatie[:4] in gemeentes):
+                volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
+                return identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
+
+            # In specific cases there is no object_id
+            return None
+        elif xml_format is BagFileTypes.FULL:
             identificatie = element.find(f"./{self.id_path}", self.namespaces)
             identificatie = identificatie.text.strip() if identificatie is not None else None
             volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
             return identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
+
+        raise ValueError(f"Unknown XML format: {xml_format}, can not get object id.")
 
     def _get_elements_mutations(self, xmlroot: Element, xml_format: BagFileTypes) -> Generator[dict, None, None]:
         """Get all important elements from the mutations XML file.
@@ -324,28 +346,21 @@ class BagExtractDatastore(Datastore):
         :param xml_format: what kind of XML file it is.
         """
         assert self.ids is not None, "self.ids should be initialised"
-
-        gemeentes = self.read_config.get("gemeentes", [])
-
         # Collect mutations in dict. Only keep last mutation for an object.
         # This is why mutation_xml_paths should first visit additions, then modifications
         mutations = {}
-        for path in self.mutation_xml_paths:
-            for element in xmlroot.iterfind(path, self.namespaces):
-                identificatie = element.find(f"./{self.id_path}", self.namespaces)
-                identificatie = identificatie.text.strip() if identificatie is not None else None
+        if xml_format is BagFileTypes.MUTATIE:
+            for path in self.mutation_xml_paths:
+                for element in xmlroot.iterfind(path, self.namespaces):
+                    object_id = self._get_object_id(element, xml_format)
+                    if object_id is not None:
+                        mutations[object_id] = element
 
-                # Filter by id, or by gemeentecode prefix (first 4 digits)
-                if identificatie and (identificatie in self.ids or identificatie[:4] in gemeentes):
-                    volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
-
-                    object_id = identificatie \
-                        if volgnummer is None \
-                        else f"{identificatie}.{volgnummer.text.strip()}"
-                    mutations[object_id] = element
-
-        for mutation in mutations.values():
-            yield mutation
+            for mutation in mutations.values():
+                yield mutation
+        elif xml_format is BagFileTypes.MUTATIE_IN_ONDERZOEK:
+            for element in xmlroot.iterfind(self.mutation_xml_inonderzoek_path, self.namespaces):
+                yield element
 
     def _pack_object(self, row, object_id) -> dict:
         return {
@@ -361,7 +376,12 @@ class BagExtractDatastore(Datastore):
         :param query: Ignored
         :param kwargs: Ignored kwargs
         """
-        get_elements_fn: Callable[[Element], Generator[Element, None, None]]
+        # TODO: instead of picking the element parser this way, maybe use "xml_format"
+        #     as element parser picker. Then each type of file gets it's own method.
+        get_elements_fn: Callable[
+            [Element, BagFileTypes],
+            Generator[Element, None, None]
+        ]
         get_elements_fn = self._get_elements_full if self.mode == ImportMode.FULL \
             else self._get_elements_mutations
 

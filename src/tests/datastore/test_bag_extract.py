@@ -1,6 +1,5 @@
 import datetime
 import os
-import pprint
 from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest import TestCase
@@ -139,9 +138,14 @@ class TestBagExtractDatastore(TestCase):
         with patch("gobbagextract.datastore.bag_extract.Path.glob", return_value=files):
             res = ds._extract_mutations_file(mock_afgifte_mut)
 
-        mock_extract_zip.assert_called_with(
+        mock_extract_zip.assert_any_call(
             Path("/tmp_dir_name/BAGNLDM-15122021-16122021.zip"),
             ["9999MUT15122021-16122021.zip"],
+            Path("/tmp_dir_name/mutations")
+        )
+        mock_extract_zip.assert_any_call(
+            Path("/tmp_dir_name/BAGNLDM-15122021-16122021.zip"),
+            ["9999IOMUT15122021-16122021.zip"],
             Path("/tmp_dir_name/mutations")
         )
         self.assertEqual(files, res)
@@ -210,7 +214,6 @@ class TestBagExtractDatastore(TestCase):
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "full.xml")]
         res = list(ds.query(None))
         self.assertEqual(len(res), 1)
-        pprint.pprint(res)
 
         expected = {
             "documentdatum": "1977-07-08",
@@ -252,7 +255,6 @@ class TestBagExtractDatastore(TestCase):
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "full_inonderzoek.xml")]
         res = list(ds.query(None))
         self.assertEqual(len(res), 1)
-        pprint.pprint(res)
 
         expected = {
             'kenmerk': 'oppervlakte',
@@ -340,3 +342,42 @@ class TestBagExtractDatastore(TestCase):
         }]
 
         self.assertEqual(expected, [r["object"] for r in res])
+
+    def test_query_mutations_inonderzoek(self):
+        """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
+
+        :return:
+        """
+        read_config = {
+            "object_type": "VBO",
+            "xml_object": "Verblijfsobject",
+            "mode": ImportMode.MUTATIONS,
+            "gemeentes": ["0457"],
+            "download_location": "the location",
+            "last_full_download_location": "last full download",
+        }
+
+        ds = BagExtractDatastore({}, read_config, None)
+        ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "mutations_inonderzoek.xml")]
+        ds.ids = ["0458010000059153123123123"]
+        res = list(ds.query(None))
+        # last update nog?
+        expected = [{
+            'gemeente': '0457',
+            'last_update': None,
+            'object': {
+                'KenmerkVerblijfsobjectInOnderzoek/documentdatum': '2022-01-17',
+                 'KenmerkVerblijfsobjectInOnderzoek/documentnummer': '2022.007225 '
+                                                                            'BAG',
+                 'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipRegistratieLV': '2022-01-19T19:05:00.739',
+                 'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/beginGeldigheid': '2022-01-17',
+                 'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/tijdstipRegistratie': '2022-01-19T18:59:32.794',
+                 'KenmerkVerblijfsobjectInOnderzoek/identificatieVanVerblijfsobject': '0935010000041035',
+                 'KenmerkVerblijfsobjectInOnderzoek/inOnderzoek': 'J',
+                 'KenmerkVerblijfsobjectInOnderzoek/kenmerk': 'gebruiksdoel'
+            },
+            'object_id': '0935010000041035'
+        }]
+        assert len(res) == 1
+        assert res[0]["object_id"] == "0935010000041035"
+        assert expected == res

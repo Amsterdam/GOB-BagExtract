@@ -9,6 +9,7 @@ from alembic.config import Config as AlembicConfig
 from sqlalchemy import create_engine
 from sqlalchemy.engine.base import Engine
 from sqlalchemy.engine.url import URL
+from sqlalchemy.exc import OperationalError
 from sqlalchemy.orm import sessionmaker, Session
 
 from gobbagextract.config import DATABASE_CONFIG, KADASTER_PRODUCTSTORE_AFGIFTE_URL
@@ -59,12 +60,19 @@ def recreate_database() -> str:
     # Cannot drop the currently open database, so do not open it.
     tmp_config.pop("database")
     engine_tmp: Engine = create_engine(URL(**tmp_config), echo=True)
-    with engine_tmp.connect() as conn:
-        conn.execute("commit")
-        conn.execute(f"DROP DATABASE IF EXISTS {test_db_name}")
-        conn.execute("commit")
-        conn.execute(f"CREATE DATABASE {test_db_name}")
-        conn.execute("commit")
+    try:
+        print("TRYING")
+        with engine_tmp.connect() as conn:
+            conn.execute("commit")
+            conn.execute(f"DROP DATABASE IF EXISTS {test_db_name}")
+            conn.execute("commit")
+            conn.execute(f"CREATE DATABASE {test_db_name}")
+            conn.execute("commit")
+    except OperationalError as e:
+        raise Exception(
+            "Could not connect to test bag database. "
+            "Is the bagextract_database container running?"
+        ) from e
     return test_db_name
 
 
