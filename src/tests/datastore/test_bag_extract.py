@@ -212,8 +212,8 @@ class TestBagExtractDatastore(TestCase):
         date_now = datetime.datetime.now().date()
         ds = BagExtractDatastore({}, read_config, date_now)
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "full.xml")]
-        res = list(ds.query(None))
-        self.assertEqual(len(res), 1)
+        results = list(ds.query(None))
+        self.assertEqual(len(results), 1)
 
         expected = {
             "documentdatum": "1977-07-08",
@@ -237,9 +237,9 @@ class TestBagExtractDatastore(TestCase):
             "voorkomen/Voorkomen/voorkomenidentificatie": "1"
         }
 
-        self.assertEqual(len(res), 1)
-        self.assertEqual(date_now, res[0]["last_update"])
-        self.assertEqual(expected, res[0]["object"])
+        self.assertEqual(len(results), 1)
+        self.assertEqual(date_now, results[0]["last_update"])
+        self.assertEqual(expected, results[0]["object"])
 
     def test_query_inonderzoek(self):
         """Tests if query picks up inonderzoek xmls correctly."""
@@ -253,8 +253,8 @@ class TestBagExtractDatastore(TestCase):
         date_now = datetime.datetime.now().date()
         ds = BagExtractDatastore({}, read_config, date_now)
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "full_inonderzoek.xml")]
-        res = list(ds.query(None))
-        self.assertEqual(len(res), 1)
+        results = list(ds.query(None))
+        self.assertEqual(len(results), 1)
 
         expected = {
             'kenmerk': 'oppervlakte',
@@ -270,9 +270,9 @@ class TestBagExtractDatastore(TestCase):
             'historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipEindRegistratieLV': '2011-03-21T15:01:30.228'
         }
 
-        self.assertEqual(len(res), 1)
-        self.assertEqual(date_now, res[0]["last_update"])
-        self.assertEqual(expected, res[0]["object"])
+        self.assertEqual(len(results), 1)
+        self.assertEqual(date_now, results[0]["last_update"])
+        self.assertEqual(expected, results[0]["object"])
 
     def test_query_mutations(self):
         """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
@@ -290,7 +290,7 @@ class TestBagExtractDatastore(TestCase):
         ds = BagExtractDatastore({}, read_config, None)
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "mutations.xml")]
         ds.ids = ["0458010000059153123123123"]
-        res = list(ds.query(None))
+        results = list(ds.query(None))
 
         expected = [{
             "documentdatum": "2010-09-28",
@@ -341,7 +341,7 @@ class TestBagExtractDatastore(TestCase):
             "voorkomen/Voorkomen/voorkomenidentificatie": "1"
         }]
 
-        self.assertEqual(expected, [r["object"] for r in res])
+        self.assertEqual(expected, [r["object"] for r in results])
 
     def test_query_mutations_inonderzoek(self):
         """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
@@ -360,22 +360,17 @@ class TestBagExtractDatastore(TestCase):
         ds = BagExtractDatastore({}, read_config, None)
         ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "mutations_inonderzoek.xml")]
         ds.ids = ["0458010000059153123123123"]
-        res = list(ds.query(None))
-        expected = [{
-            'gemeente': '0457',
-            'last_update': None,
-            'object': {
-                'KenmerkVerblijfsobjectInOnderzoek/documentdatum': '2022-01-17',
-                'KenmerkVerblijfsobjectInOnderzoek/documentnummer': '2022.007225 BAG',
-                'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipRegistratieLV': '2022-01-19T19:05:00.739',
-                'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/beginGeldigheid': '2022-01-17',
-                'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/tijdstipRegistratie': '2022-01-19T18:59:32.794',
-                'KenmerkVerblijfsobjectInOnderzoek/identificatieVanVerblijfsobject': '0935010000041035',
-                'KenmerkVerblijfsobjectInOnderzoek/inOnderzoek': 'J',
-                'KenmerkVerblijfsobjectInOnderzoek/kenmerk': 'gebruiksdoel'
-            },
-            'object_id': '0935010000041035'
-        }]
-        assert len(res) == 1
-        assert res[0]["object_id"] == "0935010000041035"
-        assert expected == res
+        results = list(ds.query(None))
+        expected = {
+            'KenmerkVerblijfsobjectInOnderzoek/documentdatum': '2022-01-17',
+            'KenmerkVerblijfsobjectInOnderzoek/documentnummer': '2022.007225 BAG',
+            'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/BeschikbaarLVInOnderzoek/tijdstipRegistratieLV': '2022-01-19T19:05:00.739',
+            'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/beginGeldigheid': '2022-01-17',
+            'KenmerkVerblijfsobjectInOnderzoek/historieInOnderzoek/HistorieInOnderzoek/tijdstipRegistratie': '2022-01-19T18:59:32.794',
+            'KenmerkVerblijfsobjectInOnderzoek/identificatieVanVerblijfsobject': '0935010000041035',
+            'KenmerkVerblijfsobjectInOnderzoek/inOnderzoek': 'J',
+            'KenmerkVerblijfsobjectInOnderzoek/kenmerk': 'gebruiksdoel'
+        }
+        assert len(results) == 1
+        assert results[0]["object_id"] == "0935010000041035.gebruiksdoel.2022.007225 BAG.1"
+        assert results[0]["object"] == expected

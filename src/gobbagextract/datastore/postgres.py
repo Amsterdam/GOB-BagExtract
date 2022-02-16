@@ -30,6 +30,12 @@ class PostgresDatastoreExt(PostgresDatastore):
                 execute_values(cursor, query, rows)
                 self.connection.commit()
         except Error as e:
+            # print(e.pgcode)
+            # print(e.pgerror)
+            # print(query)
+            print(id_name)
+            print(sorted([r[0] for r in rows]))
+            # print(rows[0][0])
             raise GOBException(f'Error writing rows to table {table}. Error: {e}')
 
         return len(rows)

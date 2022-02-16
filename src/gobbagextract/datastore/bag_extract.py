@@ -1,3 +1,4 @@
+from __future__ import annotations
 from collections import defaultdict
 
 import io
@@ -19,6 +20,17 @@ from gobbagextract.mutations.productstore import ProductStore
 from gobcore.datastore.datastore import Datastore
 from gobcore.enum import ImportMode
 from gobcore.exceptions import GOBException
+from gobcore.logging.logger import logger
+
+
+class BaseBagExtractException(Exception):
+    """Base class for BagExtract missing data errors"""
+    pass
+
+
+class BagExtractElementDoesNotExistException(BaseBagExtractException):
+    """Raised when an element does not exist."""
+    pass
 
 
 def _extract_nested_zip(zip_file, nested_zip_files: List[str], destination_dir: Path):
@@ -210,6 +222,8 @@ class BagExtractDatastore(Datastore):
         self.mutation_xml_inonderzoek_path = f"./ml:mutatieBericht/ml:mutatieGroep//mlm:kenmerkInOnderzoek"
 
         self.mode = self.read_config["mode"]
+        # Calculated volgnummers for "in onderzoek" objects.
+        self.volgnummer = {}
         assert isinstance(self.mode, ImportMode), "mode should be of type ImportMode"
 
     def _check_config(self):
@@ -297,20 +311,37 @@ class BagExtractDatastore(Datastore):
         """Get the object_id for the object being processed.
 
         The element to look for is different per entity type.
+        object_id's should be predictable, as they may and should overwrite old data.
 
         :param element: An xml element.
         :param xml_format: what kind of XML file it is.
         :return:
         """
+
+        def get_element_text(xpath: str):
+            el = element.find(xpath, self.namespaces)
+            if el is None:
+                raise BagExtractElementDoesNotExistException(
+                    f"No element found for {xpath}"
+                )
+
+            return el.text.strip()
+
         if xml_format is BagFileTypes.FULL_IN_ONDERZOEK or xml_format is BagFileTypes.MUTATIE_IN_ONDERZOEK:
             id_path = f"KenmerkInOnderzoek:identificatieVan{self.read_config['xml_object']}"
-            identificatie = element.find(f".//{id_path}", self.namespaces)
-            return identificatie.text.strip()
+            identificatie = get_element_text(f".//{id_path}")
+            kenmerk = get_element_text(f".//KenmerkInOnderzoek:kenmerk")
+            documentnummer = get_element_text(f".//KenmerkInOnderzoek:documentnummer")
+
+            # Key is predictable and unique this way.
+            object_key = f"{identificatie}.{kenmerk}.{documentnummer}"
+            if object_key not in self.volgnummer:
+                self.volgnummer[object_key] = 0
+            self.volgnummer[object_key] += 1
+            return f"{object_key}.{self.volgnummer[object_key]}"
         elif xml_format is BagFileTypes.MUTATIE:
             gemeentes = self.read_config.get("gemeentes", [])
-            identificatie = element.find(f"./{self.id_path}", self.namespaces)
-            identificatie = identificatie.text.strip() if identificatie is not None else None
-
+            identificatie = get_element_text(f"./{self.id_path}")
             # Filter by id, or by gemeentecode prefix (first 4 digits)
             if identificatie and (identificatie in self.ids or identificatie[:4] in gemeentes):
                 volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
@@ -319,8 +350,7 @@ class BagExtractDatastore(Datastore):
             # In specific cases there is no object_id
             return None
         elif xml_format is BagFileTypes.FULL:
-            identificatie = element.find(f"./{self.id_path}", self.namespaces)
-            identificatie = identificatie.text.strip() if identificatie is not None else None
+            identificatie = get_element_text(f"./{self.id_path}")
             volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
             return identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
 
@@ -413,9 +443,20 @@ class BagExtractDatastore(Datastore):
             tree = ElementTree.parse(file)
             xmlroot = tree.getroot()
             xml_format = self._determine_xml_format(xmlroot)
+            print(f"Parsing {file} as {xml_format}")
             get_elements_fn = self._parse_elements(xml_format)
 
             for element in get_elements_fn(xmlroot, xml_format):
                 row = ElementFormatter(element).get_dict()
-                object_id = self._get_object_id(element=element, xml_format=xml_format)
+                # TODO: raise and catch exception from get_object_id.
+                # it should raise an exception if identificatie is None
+                try:
+                    object_id = self._get_object_id(element=element, xml_format=xml_format)
+                except BaseBagExtractException as e:
+                    logger.warning(
+                        f"No object_id can be created for {element} in {file}: ",
+                        str(e)
+                    )
+                    continue
+
                 yield self._pack_object(row, object_id)
