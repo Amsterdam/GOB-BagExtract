@@ -61,7 +61,6 @@ def recreate_database() -> str:
     tmp_config.pop("database")
     engine_tmp: Engine = create_engine(URL(**tmp_config), echo=True)
     try:
-        print("TRYING")
         with engine_tmp.connect() as conn:
             conn.execute("commit")
             conn.execute(f"DROP DATABASE IF EXISTS {test_db_name}")
