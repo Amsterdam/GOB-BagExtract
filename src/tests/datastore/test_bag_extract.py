@@ -200,7 +200,8 @@ class TestBagExtractDatastore(TestCase):
         ds.disconnect()
         ds.tmp_dir.cleanup.assert_called_once()
 
-    def test_query_full(self):
+    @patch("gobcore.logging.logger.LoggerManager")
+    def test_query_full(self, logger):
         """Tests query if it it picks up full xml files."""
         read_config = {
             "object_type": "VBO",
@@ -391,3 +392,51 @@ class TestBagExtractDatastore(TestCase):
         assert len(results) == 1
         assert results[0]["object_id"] == "0935010000041035.gebruiksdoel.2022.007225 BAG.1"
         assert results[0]["object"] == expected
+
+    @patch("gobcore.logging.logger.LoggerManager")
+    def test_query_mutations_inonderzoek_empty_objects(self, logger):
+        """Tests if mutations has no mutations in it."""
+        read_config = {
+            "object_type": "VBO",
+            "xml_object": "Verblijfsobject",
+            "mode": ImportMode.MUTATIONS,
+            "gemeentes": ["0457"],
+            "download_location": "the location",
+            "last_full_download_location": "last full download",
+        }
+
+        ds = BagExtractDatastore({}, read_config, None)
+        ds.files = [
+            os.path.join(
+                os.path.dirname(__file__),
+                "bag_extract_fixtures",
+                "mutations_inonderzoek_empty.xml"
+            )
+        ]
+        ds.ids = ["0458010000059153123123123"]
+        results = list(ds.query(None))
+        assert len(results) == 0
+
+    @patch("gobcore.logging.logger.LoggerManager")
+    def test_query_unknown_xml_format(self, logger):
+        """Tests if unknown xml formats are handled properly."""
+        read_config = {
+            "object_type": "VBO",
+            "xml_object": "Verblijfsobject",
+            "mode": ImportMode.MUTATIONS,
+            "gemeentes": ["0457"],
+            "download_location": "the location",
+            "last_full_download_location": "last full download",
+        }
+
+        ds = BagExtractDatastore({}, read_config, None)
+        ds.files = [
+            os.path.join(
+                os.path.dirname(__file__),
+                "bag_extract_fixtures",
+                "unknown_xml_format.xml"
+            )
+        ]
+        ds.ids = ["0458010000059153123123123"]
+        results = list(ds.query(None))
+        assert len(results) == 0

@@ -35,6 +35,14 @@ class BagExtractIncorrectObjectIDDataException(BaseBagExtractException):
     """Incorrect set of data to generate a new object id from."""
 
 
+class BagExtractUnknownXMLFormat(BaseBagExtractException):
+    """Raised when the XML format can not be determined."""
+
+
+class BagExtractXMLHasNoObjects(BaseBagExtractException):
+    """Raised when the XML format is correct but has no objects in it."""
+
+
 def _extract_nested_zip(zip_file, nested_zip_files: List[str], destination_dir: Path):
     """Extracts nested zip file from zip_file.
 
@@ -299,15 +307,20 @@ class BagExtractDatastore(Datastore):
         :param xmlroot: parsed XML file.
         :return: a BagFileType
         """
-        if xmlroot.find(".//sl-bag-extract:kenmerkInOnderzoek", self.namespaces):
-            return BagFileTypes.FULL_IN_ONDERZOEK
-        elif xmlroot.find(".//ml:mutatieBericht//mlm:kenmerkInOnderzoek", self.namespaces):
-            return BagFileTypes.MUTATIE_IN_ONDERZOEK
-        elif xmlroot.find(".//ml:mutatieBericht//mlm:bagObject", self.namespaces):
-            return BagFileTypes.MUTATIE
-        else:
-            # TODO: better to raise an exception, as it it might be unhandled XML data.
-            return BagFileTypes.FULL
+        if stand := xmlroot.find(".//sl:standBestand", self.namespaces):
+            if stand.find(".//sl-bag-extract:bagObject", self.namespaces):
+                return BagFileTypes.FULL
+            elif stand.find(".//sl-bag-extract:kenmerkInOnderzoek", self.namespaces):
+                return BagFileTypes.FULL_IN_ONDERZOEK
+            raise BagExtractXMLHasNoObjects("Full XML has no objects in it.")
+        elif mutation := xmlroot.find(".//ml:mutatieBericht", self.namespaces):
+            if mutation.find(".//mlm:bagObject", self.namespaces):
+                return BagFileTypes.MUTATIE
+            elif mutation.find(".//mlm:kenmerkInOnderzoek", self.namespaces):
+                return BagFileTypes.MUTATIE_IN_ONDERZOEK
+            raise BagExtractXMLHasNoObjects("Mutation XML has no mutations in it.")
+
+        raise BagExtractUnknownXMLFormat(f"Unknown BAG XML file type {xmlroot}")
 
     def get_element_text(self, xpath: str, element: Element):
         el = element.find(xpath, self.namespaces)
@@ -443,10 +456,15 @@ class BagExtractDatastore(Datastore):
         :param kwargs: Ignored kwargs
         """
         for file in self.files:
+            print(f"Parsing {file}")
             tree = ElementTree.parse(file)
             xmlroot = tree.getroot()
-            xml_format = self._determine_xml_format(xmlroot)
-            print(f"Parsing {file} as {xml_format}")
+            try:
+                xml_format = self._determine_xml_format(xmlroot)
+            except BaseBagExtractException as e:
+                logger.warning(str(e))
+                continue
+
             get_elements_fn = self._parse_elements(xml_format)
 
             for element in get_elements_fn(xmlroot, xml_format):
