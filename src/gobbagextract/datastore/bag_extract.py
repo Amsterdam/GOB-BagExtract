@@ -331,7 +331,7 @@ class BagExtractDatastore(Datastore):
 
         return el.text.strip()
 
-    def _get_object_id(self, element: Element, xml_format: BagFileTypes) -> None | str:
+    def _get_object_id(self, element: Element, xml_format: BagFileTypes) -> str:
         """Get the object_id for the object being processed.
 
         The element to look for is different per entity type.
@@ -410,8 +410,7 @@ class BagExtractDatastore(Datastore):
                     logger.warning(str(e))
                     continue
 
-                if object_id:
-                    mutations[object_id] = element
+                mutations[object_id] = element
 
         for mutation in mutations.values():
             yield mutation
