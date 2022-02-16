@@ -274,7 +274,24 @@ class TestBagExtractDatastore(TestCase):
         self.assertEqual(date_now, results[0]["last_update"])
         self.assertEqual(expected, results[0]["object"])
 
-    def test_query_mutations(self):
+    @patch("gobcore.logging.logger.LoggerManager")
+    def test_query_inonderzoek_broken_id(self, logger):
+        """Tests if query picks up inonderzoek xmls correctly."""
+        read_config = {
+            "object_type": "VBO",
+            "xml_object": "Verblijfsobject",
+            "mode": ImportMode.FULL,
+            "gemeentes": ["0457"],
+            "download_location": "the location",
+        }
+        date_now = datetime.datetime.now().date()
+        ds = BagExtractDatastore({}, read_config, date_now)
+        ds.files = [os.path.join(os.path.dirname(__file__), "bag_extract_fixtures", "full_inonderzoek_broken_id.xml")]
+        results = list(ds.query(None))
+        self.assertEqual(len(results), 0)
+
+    @patch("gobcore.logging.logger.LoggerManager")
+    def test_query_mutations(self, logger):
         """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
 
         :return:
