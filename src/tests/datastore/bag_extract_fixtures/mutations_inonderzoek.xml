@@ -31,7 +31,30 @@
             <ml:leveringsId>0000000001</ml:leveringsId>
             <ml:objectTypen/>
         </ml:inhoud>
-
+        <ml:mutatieGroep>
+            <ml:toevoeging>
+                <ml:wordt>
+                    <mlm:kenmerkInOnderzoek>
+                        <KenmerkInOnderzoek:KenmerkPandInOnderzoek>
+                            <KenmerkInOnderzoek:kenmerk>geometrie</KenmerkInOnderzoek:kenmerk>
+                            <KenmerkInOnderzoek:identificatieVanPand domein="NL.IMBAG.Pand">0275100000002676</KenmerkInOnderzoek:identificatieVanPand>
+                            <KenmerkInOnderzoek:inOnderzoek>N</KenmerkInOnderzoek:inOnderzoek>
+                            <KenmerkInOnderzoek:documentdatum>2022-02-07</KenmerkInOnderzoek:documentdatum>
+                            <KenmerkInOnderzoek:documentnummer>2022.820160.01</KenmerkInOnderzoek:documentnummer>
+                            <KenmerkInOnderzoek:historieInOnderzoek>
+                                <Historie:HistorieInOnderzoek>
+                                    <Historie:tijdstipRegistratie>2022-02-07T09:58:03.978</Historie:tijdstipRegistratie>
+                                    <Historie:beginGeldigheid>2022-02-07</Historie:beginGeldigheid>
+                                    <Historie:BeschikbaarLVInOnderzoek>
+                                        <Historie:tijdstipRegistratieLV>2022-02-07T10:03:23.912</Historie:tijdstipRegistratieLV>
+                                    </Historie:BeschikbaarLVInOnderzoek>
+                                </Historie:HistorieInOnderzoek>
+                            </KenmerkInOnderzoek:historieInOnderzoek>
+                        </KenmerkInOnderzoek:KenmerkPandInOnderzoek>
+                    </mlm:kenmerkInOnderzoek>
+                </ml:wordt>
+            </ml:toevoeging>
+        </ml:mutatieGroep>
         <ml:mutatieGroep>
             <ml:toevoeging>
                 <ml:wordt>

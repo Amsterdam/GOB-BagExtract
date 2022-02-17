@@ -360,7 +360,9 @@ class BagExtractDatastore(Datastore):
             if identificatie and (identificatie in self.ids or identificatie[:4] in gemeentes):
                 volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
                 return identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
-            raise BagExtractIncorrectObjectIDDataException(f"Can not determine id for {identificatie}")
+            raise BagExtractIncorrectObjectIDDataException(
+                f"Can not determine id for {self.read_config['xml_object']} {xml_format} {identificatie}"
+            )
         elif xml_format is BagFileTypes.FULL:
             identificatie = self.get_element_text(f"./{self.id_path}", element)
             volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
@@ -399,17 +401,18 @@ class BagExtractDatastore(Datastore):
         :param xml_format: what kind of XML file it is.
         """
         assert self.ids is not None, "self.ids should be initialised"
-        # Collect mutations in dict. Only keep last mutation for an object.
-        # This is why mutation_xml_paths should first visit additions, then modifications
+
         mutations = {}
         for path in self.mutation_xml_paths:
             for element in xmlroot.iterfind(path, self.namespaces):
                 try:
                     object_id = self._get_object_id(element, xml_format)
-                except BagExtractIncorrectObjectIDDataException as e:
-                    logger.warning(str(e))
+                except BagExtractIncorrectObjectIDDataException:
+                    # logger.info(str(e))
                     continue
 
+                # mutation_xml_paths Should first find additions, then modifications
+                # Only keep last mutation for an object.
                 mutations[object_id] = element
 
         for mutation in mutations.values():
@@ -424,7 +427,11 @@ class BagExtractDatastore(Datastore):
         :param xml_format: what kind of XML file it is.
         """
         for element in xmlroot.iterfind(self.mutation_xml_inonderzoek_path, self.namespaces):
-            yield element
+            if element.findall(
+                    f".//KenmerkInOnderzoek:Kenmerk{self.read_config['xml_object']}InOnderzoek",
+                    self.namespaces
+            ):
+                yield element
 
     def _pack_object(self, row, object_id) -> dict:
         return {
@@ -461,20 +468,16 @@ class BagExtractDatastore(Datastore):
             try:
                 xml_format = self._determine_xml_format(xmlroot)
             except BaseBagExtractException as e:
-                logger.warning(str(e))
+                logger.warning(f"Parsing {file}: {str(e)}")
                 continue
 
             get_elements_fn = self._parse_elements(xml_format)
-
             for element in get_elements_fn(xmlroot, xml_format):
                 row = ElementFormatter(element).get_dict()
                 try:
                     object_id = self._get_object_id(element=element, xml_format=xml_format)
                 except BaseBagExtractException as e:
-                    logger.warning(
-                        f"No object_id can be created for {element} in {file}: ",
-                        str(e)
-                    )
+                    logger.warning(f"No object_id can be created for {element} in {file}: {str(e)}")
                     continue
 
                 yield self._pack_object(row, object_id)

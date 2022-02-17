@@ -361,11 +361,9 @@ class TestBagExtractDatastore(TestCase):
 
         self.assertEqual(expected, [r["object"] for r in results])
 
-    def test_query_mutations_inonderzoek(self):
-        """Tests query, _element_to_dict, _flatten_dict, _flatten_nested_list and _gml_to_wkt
-
-        :return:
-        """
+    @patch("gobbagextract.datastore.bag_extract._extract_nested_zip")
+    def test_query_mutations_inonderzoek(self, logger):
+        """Tests if mutations "inonderzoek" are handled correctly."""
         read_config = {
             "object_type": "VBO",
             "xml_object": "Verblijfsobject",
