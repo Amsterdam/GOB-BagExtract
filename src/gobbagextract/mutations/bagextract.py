@@ -1,3 +1,4 @@
+from __future__ import annotations
 import datetime as dt
 from typing import Tuple
 
@@ -106,10 +107,11 @@ class BagExtractMutationsHandler:
 
         raise NothingToDo(f"No initial import found for {self.INITIAL_IMPORT_RETRY} periods.")
 
-    def handle_import(self, last_import: MutationImport, dataset: dict) -> tuple[MutationImport, dict, dt.date]:
+    def handle_import(self, last_import: None | MutationImport, dataset: dict) -> tuple[MutationImport, dict, dt.date]:
         gemeente = self._get_gemeente(dataset)
 
-        if not last_import:
+        if last_import is None:
+            print("No first import, switching to full", last_import)
             mode, afgifte, date = self.initial_import(dt.date.today(), gemeente)
         elif not last_import.is_ended():
             mode, afgifte, date = self.restart_import(last_import)

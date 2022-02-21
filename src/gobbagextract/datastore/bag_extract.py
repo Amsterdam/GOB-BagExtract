@@ -223,13 +223,13 @@ class BagExtractDatastore(Datastore):
         # full_xml_path is for files named like "0457VBO15012022-000001.xml"
         self.full_xml_path = f"./sl:standBestand/sl:stand/sl-bag-extract:bagObject/Objecten:{xml_object}"
         # full_xml_inonderzoek_path is for files named like "0457IOVBO15012022-000001"
-        self.full_xml_inonderzoek_path = f"./sl:standBestand/sl:stand/sl-bag-extract:kenmerkInOnderzoek/KenmerkInOnderzoek:Kenmerk{xml_object}InOnderzoek"  # noqa: E501
+        self.full_xml_inonderzoek_path = f"./sl:standBestand/sl:stand/sl-bag-extract:kenmerkInOnderzoek/./"  # noqa: E501
         self.mutation_xml_paths = [
             # Ordering matters. First "toevoeging", then "wijziging"
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:toevoeging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
             f"./ml:mutatieBericht/ml:mutatieGroep/ml:wijziging/ml:wordt/mlm:bagObject/Objecten:{xml_object}",
         ]
-        self.mutation_xml_inonderzoek_path = "./ml:mutatieBericht/ml:mutatieGroep//mlm:kenmerkInOnderzoek"
+        self.mutation_xml_inonderzoek_path = "./ml:mutatieBericht/ml:mutatieGroep//mlm:kenmerkInOnderzoek/./"
 
         self.mode = self.read_config["mode"]
         # Calculated volgnummers for "in onderzoek" objects.
@@ -256,12 +256,27 @@ class BagExtractDatastore(Datastore):
         # Actual data
         _extract_nested_zip(src_file, nested_zip_files, dst_dir)
 
-        # Kenmerken in onderzoek per object type.
-        _extract_nested_zip(src_file, [
-            f"{gemeente}GEM{datestr}.zip",
-            f"{gemeente}InOnderzoek{datestr}.zip",
-            f"{gemeente}IO{self.read_config['object_type']}{datestr}.zip",
-        ], dst_dir)
+        return dst_dir.glob("*.xml")
+
+    def _extract_full_inonderzoek(self, afgifte: Afgifte) -> Iterator[Path]:
+        dst_dir = Path(self.tmp_path, ImportMode.FULL.value)
+        gemeente = afgifte.get_gemeente()
+        datestr = afgifte.get_date().strftime("%d%m%Y")
+        src_file = Path(self.tmp_path, afgifte.Bestandsnaam)
+        object_types = ["LIG", "NUM", "OPR", "PND", "STA", "VBO", "WPL"]
+        for object_type in object_types:
+            _extract_nested_zip(src_file, [
+                f"{gemeente}GEM{datestr}.zip",
+                f"{gemeente}InOnderzoek{datestr}.zip",
+                f"{gemeente}IO{object_type}{datestr}.zip",
+            ], dst_dir)
+        return dst_dir.glob("*.xml")
+
+    def _extract_mutations_inonderzoek(self, afgifte: Afgifte) -> Iterator[Path]:
+        src_file = Path(self.tmp_path, afgifte.Bestandsnaam)
+        dst_dir = Path(self.tmp_path, ImportMode.MUTATIONS.value)
+        # Kenmerken in onderzoek
+        _extract_nested_zip(src_file, [f"9999IOMUT{afgifte.get_daterange()}.zip"], dst_dir)
         return dst_dir.glob("*.xml")
 
     def _extract_mutations_file(self, afgifte: Afgifte) -> Iterator[Path]:
@@ -269,8 +284,6 @@ class BagExtractDatastore(Datastore):
         dst_dir = Path(self.tmp_path, ImportMode.MUTATIONS.value)
 
         _extract_nested_zip(src_file, [f"9999MUT{afgifte.get_daterange()}.zip"], dst_dir)
-        # Kenmerken in onderzoek
-        _extract_nested_zip(src_file, [f"9999IOMUT{afgifte.get_daterange()}.zip"], dst_dir)
         return dst_dir.glob("*.xml")
 
     def _get_mutation_ids(self) -> Iterator[str]:
@@ -287,8 +300,12 @@ class BagExtractDatastore(Datastore):
     def connect(self):
         afgifte = self.read_config["download_location"]
         ProductStore.download(afgifte, destination=self.tmp_path)
-        if self.mode == ImportMode.FULL:
+        if self.mode == ImportMode.FULL and self.read_config["object_type"] == "InOnderzoek":
+            self.files = sorted(self._extract_full_inonderzoek(afgifte))
+        elif self.mode == ImportMode.FULL:
             self.files = sorted(self._extract_full_file(afgifte))
+        elif self.mode == ImportMode.MUTATIONS and self.read_config["object_type"] == "InOnderzoek":
+            self.files = sorted(self._extract_mutations_inonderzoek(afgifte))
         else:
             self.ids = set(self._get_mutation_ids())
             self.files = sorted(self._extract_mutations_file(afgifte))
@@ -342,8 +359,7 @@ class BagExtractDatastore(Datastore):
         :return:
         """
         if xml_format is BagFileTypes.FULL_IN_ONDERZOEK or xml_format is BagFileTypes.MUTATIE_IN_ONDERZOEK:
-            id_path = f"KenmerkInOnderzoek:identificatieVan{self.read_config['xml_object']}"
-            identificatie = self.get_element_text(f".//{id_path}", element)
+            identificatie = self.get_element_text("././", element)
             kenmerk = self.get_element_text(".//KenmerkInOnderzoek:kenmerk", element)
             documentnummer = self.get_element_text(".//KenmerkInOnderzoek:documentnummer", element)
 
@@ -351,6 +367,7 @@ class BagExtractDatastore(Datastore):
             object_key = f"{identificatie}.{kenmerk}.{documentnummer}"
             if object_key not in self.volgnummer:
                 self.volgnummer[object_key] = 0
+
             self.volgnummer[object_key] += 1
             return f"{object_key}.{self.volgnummer[object_key]}"
         elif xml_format is BagFileTypes.MUTATIE:
@@ -360,6 +377,7 @@ class BagExtractDatastore(Datastore):
             if identificatie and (identificatie in self.ids or identificatie[:4] in gemeentes):
                 volgnummer = element.find(f"./{self.seqnr_path}", self.namespaces)
                 return identificatie if volgnummer is None else f"{identificatie}.{volgnummer.text.strip()}"
+
             raise BagExtractIncorrectObjectIDDataException(
                 f"Can not determine id for {self.read_config['xml_object']} {xml_format} {identificatie}"
             )
@@ -403,8 +421,10 @@ class BagExtractDatastore(Datastore):
         assert self.ids is not None, "self.ids should be initialised"
 
         mutations = {}
+        print("Parsing mutations...")
         for path in self.mutation_xml_paths:
             for element in xmlroot.iterfind(path, self.namespaces):
+                print(element)
                 try:
                     object_id = self._get_object_id(element, xml_format)
                 except BagExtractIncorrectObjectIDDataException:
@@ -427,11 +447,7 @@ class BagExtractDatastore(Datastore):
         :param xml_format: what kind of XML file it is.
         """
         for element in xmlroot.iterfind(self.mutation_xml_inonderzoek_path, self.namespaces):
-            if element.findall(
-                    f".//KenmerkInOnderzoek:Kenmerk{self.read_config['xml_object']}InOnderzoek",
-                    self.namespaces
-            ):
-                yield element
+            yield element
 
     def _pack_object(self, row, object_id) -> dict:
         return {
@@ -461,8 +477,8 @@ class BagExtractDatastore(Datastore):
         :param query: Ignored
         :param kwargs: Ignored kwargs
         """
+        print(self.read_config.get("object_type"))
         for file in self.files:
-            print(f"Parsing {file}")
             tree = ElementTree.parse(file)
             xmlroot = tree.getroot()
             try:
@@ -471,8 +487,10 @@ class BagExtractDatastore(Datastore):
                 logger.warning(f"Parsing {file}: {str(e)}")
                 continue
 
+            print(f"Parsing {file} as {xml_format}")
             get_elements_fn = self._parse_elements(xml_format)
             for element in get_elements_fn(xmlroot, xml_format):
+                # print(element)
                 row = ElementFormatter(element).get_dict()
                 try:
                     object_id = self._get_object_id(element=element, xml_format=xml_format)

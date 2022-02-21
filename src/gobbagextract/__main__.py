@@ -42,8 +42,12 @@ def _handle_mutation_import(msg: dict, dataset: dict, mutations_handler: Mutatio
     logger.info("Have mutations import. Determine next step")
     with DatabaseSession() as session:
         repo = MutationImportRepository(session)
-        last_import = repo.get_last(dataset.get("catalogue"), dataset.get("entity"), dataset.get("source", {})
-                                    .get("application"))
+        # If there is no last import, it switches automatically to full
+        last_import = repo.get_last(
+            dataset.get("catalogue"),
+            dataset.get("entity"),
+            dataset.get("source", {}).get("application")
+        )
         try:
             mutation_import, updated_dataset, mutation_date = mutations_handler.get_next_import(last_import)
         except NothingToDo as e:

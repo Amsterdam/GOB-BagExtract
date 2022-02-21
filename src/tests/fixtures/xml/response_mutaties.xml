@@ -15,6 +15,14 @@
             <ns3:BaseURLSet type="diginetwerk">https://service30.diginetwerk.kadaster.nl/gds2/download/productstore
             </ns3:BaseURLSet>
             <ns3:BestandAfgiftes>
+                <ns3:AfgifteID>09ec66c1-ca01-4b5a-a2e6-7d90d62cb2b2</ns3:AfgifteID>
+                <ns3:Afgiftereferentie>BAGGEM0457L-15102021.zip</ns3:Afgiftereferentie>
+                <ns3:Bestandsnaam>BAGGEM0457L-15102021.zip</ns3:Bestandsnaam>
+                <ns3:artikelnummer>2531</ns3:artikelnummer>
+                <ns3:DatumAanmelding>2021-05-08T13:54:08.656+02:00</ns3:DatumAanmelding>
+                <ns3:BeschikbaarTot>2021-11-08T13:53:51+01:00</ns3:BeschikbaarTot>
+            </ns3:BestandAfgiftes>
+            <ns3:BestandAfgiftes>
                 <ns3:AfgifteID>02b9b15c-3051-4af3-8714-9a3325bf69fa</ns3:AfgifteID>
                 <ns3:Afgiftereferentie>BAGNLDM-13112021-14112021.zip</ns3:Afgiftereferentie>
                 <ns3:Bestandsnaam>BAGNLDM-13112021-14112021.zip</ns3:Bestandsnaam>

@@ -1,0 +1,17 @@
+{
+  "version": "0.1",
+  "catalogue": "bag",
+  "entity": "inonderzoek",
+  "source": {
+    "name": "Kadaster",
+    "application": "BAGExtract",
+    "entity_id": "identificatie",
+    "read_config": {
+      "object_type": "IO",
+      "xml_object": "inonderzoek",
+      "gemeentes": [
+        "0457"
+      ]
+    }
+  }
+}

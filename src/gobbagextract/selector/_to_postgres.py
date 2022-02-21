@@ -23,5 +23,6 @@ class ToPostgresSelector:
         """Prepares and writes values to a postgresql database and returns number of rows."""
         values = [self._prepare_row(row, columns) for row in values]
         column_names = [c["name"] for c in columns]
+        print(table)
 
         return self._dst_datastore.write_rows(table, values, columns=column_names)
