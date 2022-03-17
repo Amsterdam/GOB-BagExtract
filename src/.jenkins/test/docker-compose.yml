@@ -1,15 +1,16 @@
-version: "3.0"
+version: "3.4"
 
 services:
   test:
     build:
       context: ../..
-      dockerfile: Dockerfile.test
+      target: test
     command: >
       bash -c "./test.sh"
     environment:
       GOB_BAGEXTRACT_DATABASE_HOST: test_bagextract_database
       GOB_BAGEXTRACT_DATABASE_PORT: 5432
+      GOB_SHARED_DIR: /app/shared
     depends_on:
       - test_bagextract_database
   test_bagextract_database:
@@ -18,3 +19,4 @@ services:
       POSTGRES_PASSWORD: insecure
       POSTGRES_DB: gob_bagextract
       POSTGRES_USER: gob_bagextract
+

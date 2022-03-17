@@ -20,6 +20,10 @@ services:
     env_file: .env
     volumes:
       - gob-volume:/app/shared
+      - ./src/gobbagextract:/app/gobbagextract
+      - ./src/tests:/app/tests
+      - ${GOB_CORE_DIR-../GOB-Core}:/app/GOB-Core
+      - ${GOB_CONFIG_DIR-../GOB-Config}:/app/GOB-Config
     depends_on:
       - bagextract_database
 
