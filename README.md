@@ -1,10 +1,9 @@
 # GOB-BagExtract
 
-GOB BAG extracts data van de BAG registratie en prepareert deze voor de import door GOB-Import
-
+GOB BAG extracts data van de BAG registratie en prepareert deze voor de import door [GOB-Import](https://github.com/Amsterdam/GOB-Import).
 
 # Environment variables
-Example environment variables are set in .env.example. Create your own .env based on this example file:
+Example environment variables are set in `.env.example`. Create your own `.env` based on this example file:
 
 ```bash
 cp .env.example .env
@@ -17,35 +16,34 @@ export $(cat .env | xargs)
 
 # Infrastructure
 
-A running [GOB infrastructure](https://github.com/Amsterdam/GOB-Infra)
-is required to run this component.
+A running [GOB infrastructure](https://github.com/Amsterdam/GOB-Infra) is required to run this component.
 
 # Docker
 
 ## Requirements
 
-* docker-compose >= 1.17
-* docker ce >= 18.03
+* docker compose >= 1.25
+* Docker CE >= 18.09
 
 ## Run
 
 ```bash
-docker-compose build
-docker-compose up &
+docker compose build
+docker compose up &
 ```
 
 ## Tests
 
 ```bash
-docker-compose -f src/.jenkins/test/docker-compose.yml build
-docker-compose -f src/.jenkins/test/docker-compose.yml run test
+docker compose -f src/.jenkins/test/docker-compose.yml build
+docker compose -f src/.jenkins/test/docker-compose.yml run test
 ```
 
 # Local
 
 ## Requirements
 
-* python >= 3.6
+* Python >= 3.6
 
 ## Initialisation
 
@@ -57,7 +55,7 @@ source venv/bin/activate
 pip install -r src/requirements.txt
 ```
 
-Or activate the previously created virtual environment
+Or activate the previously created virtual environment:
 
 ```bash
 source venv/bin/activate
@@ -81,4 +79,4 @@ cd src
 sh test.sh
 ```
 
-BagPrepare are triggered by the GOB-Workflow module. See the GOB-Workflow README for more details
+BagExtract are triggered by the [GOB-Workflow](https://github.com/Amsterdam/GOB-Workflow) module. See the GOB-Workflow README for more details.
