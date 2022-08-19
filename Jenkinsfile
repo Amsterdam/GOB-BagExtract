@@ -27,7 +27,9 @@ node('GOBBUILD') {
 
         stage('Test') {
             tryStep "test", {
-                sh "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml build --no-cache && " +
+                // In Jenkins blijft de test database soms draaien?
+                sh "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml down && " +
+                   "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml build --no-cache && " +
                    "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml run --rm test"
 
             }, {
