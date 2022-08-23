@@ -13,7 +13,7 @@ class ArtikelNummer(Enum):
 
 CONTAINER_BASE = os.getenv("CONTAINER_BASE", "acceptatie")
 DATABASE_CONFIG = {
-    "drivername": "postgres",
+    "drivername": "postgresql",
     "username": os.getenv("GOB_BAGEXTRACT_DATABASE_USER", "gob_bagextract"),
     "password": os.getenv("GOB_BAGEXTRACT_DATABASE_PASSWORD", "insecure"),
     "host": os.getenv("GOB_BAGEXTRACT_DATABASE_HOST", "localhost"),

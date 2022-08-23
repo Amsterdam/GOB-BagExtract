@@ -1,10 +1,10 @@
-version: "3.0"
+version: "3.4"
 
 services:
   test:
     build:
       context: ../..
-      dockerfile: Dockerfile.test
+      target: test
     command: >
       bash -c "./test.sh"
     environment:
@@ -12,6 +12,7 @@ services:
       GOB_BAGEXTRACT_DATABASE_PORT: 5432
     depends_on:
       - test_bagextract_database
+
   test_bagextract_database:
     image: amsterdam/postgres11
     environment:
