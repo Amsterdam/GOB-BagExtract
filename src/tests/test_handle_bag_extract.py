@@ -56,6 +56,8 @@ class TestHandleBagExtract:
         handle_bag_extract_message(message)
         # Check if mutation is inserted in the database
         assert repo.get(updated_obj.id).filename == obj.filename
+        # Close database session
+        database.close()
         # Check if no warnings or errors where logged.
         assert gob_logger_mock.get_warnings.call_count == 0
         assert gob_logger_mock.get_errrors.call_count == 0
