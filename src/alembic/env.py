@@ -48,7 +48,7 @@ def run_migrations_online():
     """
     # Register database URL
     ini_section = config.get_section(config.config_ini_section)
-    ini_section['sqlalchemy.url'] = URL(**DATABASE_CONFIG)
+    ini_section['sqlalchemy.url'] = URL.create(**DATABASE_CONFIG)
 
     # Connect to database
     connectable = engine_from_config(
