@@ -38,7 +38,6 @@ COPY alembic alembic
 COPY alembic.ini alembic.ini
 
 USER datapunt
-
 CMD ["python", "-m", "gobbagextract"]
 
 

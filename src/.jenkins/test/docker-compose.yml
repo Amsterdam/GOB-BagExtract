@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.7"
 
 services:
   test:
@@ -15,6 +15,7 @@ services:
 
   test_bagextract_database:
     image: amsterdam/postgres11
+    container_name: bagextract_test_database
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_DB: gob_bagextract
