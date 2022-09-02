@@ -29,7 +29,6 @@ node('GOBBUILD') {
             tryStep "test", {
                 // In Jenkins geeft test_bagextract_database soms connectie problemen?!
                 sh "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml down && " +
-                   "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml up --detach test_bagextract_database && " +
                    "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml build --no-cache && " +
                    "docker-compose -p GOB-BagExtract_service -f src/.jenkins/test/docker-compose.yml run --rm test"
 
