@@ -106,7 +106,7 @@ class TestStorage(TestCase):
         gobbagextract.database.connection.engine = MockedEngine()
         gobbagextract.database.connection.session = MockedSession()
 
-    @mock.patch("gobbagextract.database.connection.URL")
+    @mock.patch("gobbagextract.database.connection.URL.create")
     @mock.patch("gobbagextract.database.connection.migrate_storage")
     @mock.patch("gobbagextract.database.connection.create_engine")
     def test_connect(self, mock_create, mock_migrate, mock_url):
