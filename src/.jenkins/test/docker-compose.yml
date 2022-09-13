@@ -1,4 +1,4 @@
-version: "3.4"
+version: "3.7"
 
 services:
   test:
@@ -8,13 +8,14 @@ services:
     command: >
       bash -c "./test.sh"
     environment:
-      GOB_BAGEXTRACT_DATABASE_HOST: test_bagextract_database
+      GOB_BAGEXTRACT_DATABASE_HOST: bagextract_test_database
       GOB_BAGEXTRACT_DATABASE_PORT: 5432
     depends_on:
       - test_bagextract_database
 
   test_bagextract_database:
     image: amsterdam/postgres11
+    container_name: bagextract_test_database
     environment:
       POSTGRES_PASSWORD: insecure
       POSTGRES_DB: gob_bagextract

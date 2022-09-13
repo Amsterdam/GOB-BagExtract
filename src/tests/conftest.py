@@ -58,7 +58,7 @@ def recreate_database() -> str:
     tmp_config = DATABASE_CONFIG.copy()
     # Cannot drop the currently open database, so do not open it.
     tmp_config.pop("database")
-    engine_tmp: Engine = create_engine(URL(**tmp_config), echo=True)
+    engine_tmp: Engine = create_engine(URL.create(**tmp_config), echo=True)
     with engine_tmp.connect() as conn:
         conn.execute("commit")
         conn.execute(f"DROP DATABASE IF EXISTS {test_db_name}")
@@ -78,7 +78,7 @@ def database(app_dir: Path, recreate_database) -> Generator[Session, None, None]
     """
     test_db_name = recreate_database
     DATABASE_CONFIG["database"] = test_db_name
-    engine: Engine = create_engine(URL(**DATABASE_CONFIG), echo=True)
+    engine: Engine = create_engine(URL.create(**DATABASE_CONFIG), echo=True)
     session_factory = sessionmaker(bind=engine)
     session: Session = session_factory()
 
