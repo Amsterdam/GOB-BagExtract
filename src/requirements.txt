@@ -1,7 +1,7 @@
--e git+https://github.com/Amsterdam/GOB-Config.git@v0.4.14v#egg=gobconfig
--e git+https://github.com/Amsterdam/GOB-Core.git@v0.17.12u#egg=gobcore
-alembic==1.5.5
+-e git+https://github.com/Amsterdam/GOB-Config.git@v0.6.0#egg=gobconfig
+-e git+https://github.com/Amsterdam/GOB-Core.git@v0.17.21#egg=gobcore
+alembic==1.8.1
 # No need to spec versions for packages only used during testing
-freezegun~=1.1.0
+freezegun~=1.2.2
 pytest-env~=0.6.2
 requests_mock~=1.9.3
