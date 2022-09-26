@@ -21,7 +21,11 @@ class TestHandleBagExtract:
         GOB logger cannot be overwritten with logging.setLoggerClass as it is not compatible with that.
         :return: A generator which yields the mocked logger.
         """
-        with mock.patch("gobbagextract.__main__.logger") as p:
+        with (
+            mock.patch("gobbagextract.__main__.logger") as p,
+            mock.patch("gobbagextract.selector._selector.logger"),
+            mock.patch("gobbagextract.prepare.prepare_client.logger")
+        ):
             yield p
 
     @pytest.fixture
