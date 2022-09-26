@@ -16,6 +16,7 @@ from gobcore.exceptions import GOBException
 from gobcore.logging.logger import logger
 from gobcore.message_broker.config import WORKFLOW_EXCHANGE, BAG_EXTRACT_QUEUE, BAG_EXTRACT_RESULT_KEY
 from gobcore.message_broker.messagedriven_service import messagedriven_service
+from gobcore.message_broker.typing import ServiceDefinition
 
 
 def _log_no_more_left(last_import: MutationImport):
@@ -100,7 +101,6 @@ def handle_bag_extract_message(msg: dict) -> dict:
         "catalogue": dataset["catalogue"],
         "entity": dataset["entity"],
     }
-    logger.configure(msg, "BAG EXTRACT")
     mutations_handler = MutationsHandler(dataset)
     next_mutation = True
     while next_mutation:
@@ -140,15 +140,15 @@ def _validate_message(msg: Dict[str, Any]) -> None:
         )
 
 
-SERVICEDEFINITION = {
+SERVICEDEFINITION: ServiceDefinition = {
     "bag_extract_request": {
         "queue": BAG_EXTRACT_QUEUE,
         "handler": handle_bag_extract_message,
         "report": {
             "exchange": WORKFLOW_EXCHANGE,
             "key": BAG_EXTRACT_RESULT_KEY,
-        },
-    },
+        }
+    }
 }
 
 
