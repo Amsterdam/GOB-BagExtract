@@ -1,5 +1,5 @@
--e git+https://github.com/Amsterdam/GOB-Config.git@v0.6.0#egg=gobconfig
--e git+https://github.com/Amsterdam/GOB-Core.git@v0.17.21#egg=gobcore
+-e git+https://github.com/Amsterdam/GOB-Config.git@v0.7.0#egg=gobconfig
+-e git+https://github.com/Amsterdam/GOB-Core.git@v1.9.0#egg=gobcore
 alembic==1.8.1
 # No need to spec versions for packages only used during testing
 freezegun~=1.2.2
