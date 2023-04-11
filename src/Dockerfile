@@ -53,6 +53,10 @@ COPY tests tests
 COPY .flake8 .flake8
 COPY test.sh test.sh
 
+# Copy wait for PostgreSQL script.
+COPY wait-for-postgres.sh wait-for-postgres.sh
+RUN chmod +x wait-for-postgres.sh
+
 # Copy Jenkins files.
 COPY .jenkins /.jenkins
 
