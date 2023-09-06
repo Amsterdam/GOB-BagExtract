@@ -5,8 +5,6 @@ services:
     build:
       context: ../..
       target: test
-    command: >
-      bash -c "./test.sh"
     environment:
       GOB_BAGEXTRACT_DATABASE_HOST: bagextract_test_database
       GOB_BAGEXTRACT_DATABASE_PORT: 5432
