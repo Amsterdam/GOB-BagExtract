@@ -1,10 +1,10 @@
 # syntax=docker/dockerfile:1
-FROM amsterdam/gob_wheelhouse:3.9-bullseye as wheelhouse
+FROM amsterdam/gob_wheelhouse:3.9-slim-bullseye as wheelhouse
 MAINTAINER datapunt@amsterdam.nl
 
 
 # Application stage.
-FROM amsterdam/gob_baseimage:3.9-bullseye as application
+FROM amsterdam/gob_baseimage:3.9-slim-bullseye as application
 MAINTAINER datapunt@amsterdam.nl
 
 # Fill the wheelhouse.
@@ -20,12 +20,6 @@ RUN LIBGDAL_VERSION=$(gdal-config --version) pip install --no-cache-dir \
 RUN rm requirements.txt
 # Wheelhouse cleanup.
 RUN rm -rf /opt/wheelhouse
-
-# Custom certs.
-ENV REQUESTS_CA_BUNDLE /etc/ssl/certs/ca-certificates.crt
-COPY *.crt /usr/local/share/ca-certificates/extras/
-RUN chmod 755 /usr/local/share/ca-certificates/extras && \
-	chmod 644 /usr/local/share/ca-certificates/extras/* && update-ca-certificates
 
 # Create directory for client certs (datapunt Openstack).
 RUN mkdir -p /certs/gob/ && chmod -R 755 /certs
